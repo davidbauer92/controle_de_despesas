@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Controle de despesas pessoais mensal">
+    <meta name="theme-color" content="#6c5ce7">
+    <title>Controle de Despesas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> <!-- Link para o arquivo CSS -->
+</head>
+<body>
+    <header>
+        <h1>Controle de Despesas</h1>
+    </header>
+    
+    <main>
+        <div class="container-orcamento">
+            <section id="infoSalario">
+                <h2>Orçamento Familiar</h2>
+                <div class="pessoas-container">
+                    <div id="listaPessoas">
+                        <!-- Pessoas serão adicionadas aqui -->
+                    </div>
+                    <button type="button" id="btnAdicionarPessoa" class="btn-adicionar">
+                        <span>+</span> Adicionar Pessoa
+                    </button>
+                </div>
+            </section>
+
+            <section id="resumoDespesas">
+                <h2>Resumo de Despesas</h2>
+                <div id="resumoPorPessoa">
+                    <!-- Resumo por pessoa será inserido aqui -->
+                </div>
+                <p><strong>Total Geral:</strong> <span id="totalGeral">R$ 0,00</span></p>
+            </section>
+        </div>
+
+        <form id="formDespesa">
+            <label for="data">Data:</label>
+            <input type="datetime-local" id="data" required><br>
+            
+            <label for="tipo">Tipo:</label>
+            <select id="tipo">
+                <option value="Fixa">Fixas</option>
+                <option value="Variavel">Variáveis</option>
+                <option value="Outras">Outras</option>
+            </select><br>
+            
+            <label for="descricao">Descrição:</label>
+            <input type="text" id="descricao" required><br>
+            
+            <label for="valor">Valor (R$):</label>
+            <input type="number" id="valor" step="0.01" required><br>
+            
+            <div class="form-buttons">
+                <button type="submit">Adicionar Despesa</button>
+                <button type="button" id="btnCancelar" style="display: none;">Cancelar</button>
+            </div>
+        </form>
+
+        <section>
+            <h2>Despesas do Mês</h2>
+            <table id="tabelaDespesas">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-coluna="data">Data <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="tipo">Tipo de Despesa <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="descricao">Descrição <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="valor">Valor (R$) <span class="ordem"></span></th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- As despesas serão inseridas aqui -->
+                </tbody>
+            </table>
+        </section>
+
+        <section id="analiseOrcamento">
+            <h2>Análise de Orçamento</h2>
+            <div class="barra-progresso-container">
+                <div class="barra-progresso">
+                    <div class="progresso" id="barraCompromisso"></div>
+                </div>
+                <div class="info-progresso">
+                    <p>Total Familiar: <span id="exibeSalario">R$ 0,00</span></p>
+                    <p>Total Despesas: <span id="totalDespesas">R$ 0,00</span></p>
+                    <p>Disponível: <span id="valorDisponivel">R$ 0,00</span></p>
+                </div>
+            </div>
+            <div class="status-orcamento">
+                <p id="statusMensagem">Adicione pessoas para ver análises</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para adicionar/editar pessoa -->
+    <div id="modalPessoa" class="modal">
+        <div class="modal-content">
+            <h3>Adicionar Pessoa</h3>
+            <form id="formPessoa">
+                <label for="nomePessoa">Nome:</label>
+                <input type="text" id="nomePessoa" required><br>
+                
+                <label for="salarioPessoa">Salário Mensal (R$):</label>
+                <input type="number" id="salarioPessoa" step="0.01" min="0" required><br>
+                
+                <div class="modal-buttons">
+                    <button type="submit">Salvar</button>
+                    <button type="button" id="btnCancelarPessoa">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script> <!-- Link para o arquivo JavaScript -->
+</body>
+</html>

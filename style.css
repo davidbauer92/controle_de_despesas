@@ -1,0 +1,608 @@
+/* Estilo básico para a página */
+:root {
+    --cor-primaria: #6c5ce7;
+    --cor-secundaria: #a29bfe;
+    --cor-fundo: #f9f9f9;
+    --cor-texto: #333;
+    --cor-sucesso: #00b894;
+    --cor-edicao: #fdcb6e;
+    --cor-perigo: #d63031;
+    --sombra-suave: 0 4px 6px rgba(0, 0, 0, 0.05);
+    --borda-radius: 8px;
+    --espacamento: 20px;
+}
+
+body {
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    padding: var(--espacamento);
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+    line-height: 1.6;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+h1, h2, h3 {
+    color: var(--cor-primaria);
+    font-weight: 600;
+}
+
+h1 {
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--cor-secundaria);
+}
+
+form {
+    background-color: #fff;
+    padding: var(--espacamento);
+    border-radius: var(--borda-radius);
+    box-shadow: var(--sombra-suave);
+    max-width: 500px;
+    margin: 0 auto 30px auto;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: var(--cor-primaria);
+    font-weight: 500;
+}
+
+input, select {
+    padding: 10px;
+    margin-bottom: 15px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: var(--borda-radius);
+    transition: border-color 0.3s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--cor-primaria);
+    box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.1);
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 10px;
+}
+
+button {
+    padding: 12px 20px;
+    background-color: var(--cor-primaria);
+    color: white;
+    border: none;
+    border-radius: var(--borda-radius);
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+button:hover {
+    background-color: #5d4ed6;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: white;
+    border-radius: var(--borda-radius);
+    overflow: hidden;
+    box-shadow: var(--sombra-suave);
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background-color: var(--cor-primaria);
+    color: white;
+    font-weight: 500;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover {
+    background-color: rgba(108, 92, 231, 0.05);
+}
+
+#resumoDespesas {
+    background-color: white;
+    padding: var(--espacamento);
+    border-radius: var(--borda-radius);
+    box-shadow: var(--sombra-suave);
+    margin-top: 0;
+}
+
+#resumoDespesas h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+#resumoDespesas p {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border-radius: var(--borda-radius);
+}
+
+#resumoDespesas p:last-child {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #eee;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background-color: #f0f0f0;
+}
+
+.btn-excluir {
+    background-color: var(--cor-perigo);
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: var(--borda-radius);
+    cursor: pointer;
+}
+
+.btn-excluir:hover {
+    background-color: #b52324;
+}
+
+.btn-editar {
+    background-color: var(--cor-primaria);
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: var(--borda-radius);
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.btn-editar:hover {
+    background-color: #5d4ed6;
+}
+
+/* Estilo para o botão de envio padrão */
+button[type="submit"] {
+    background-color: var(--cor-sucesso);
+    width: auto;
+}
+
+button[type="submit"]:hover {
+    background-color: #00a383;
+}
+
+/* Estilo para o botão quando está no modo de edição */
+button[type="submit"].modo-edicao {
+    background-color: var(--cor-edicao);
+    color: #333;
+}
+
+button[type="submit"].modo-edicao:hover {
+    background-color: #f0b84d;
+}
+
+/* Estilo para botão cancelar */
+#btnCancelar {
+    background-color: var(--cor-perigo);
+    margin-left: 10px;
+}
+
+#btnCancelar:hover {
+    background-color: #b52324;
+}
+
+/* Estilos para ordenação de tabela */
+th.sortable {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    transition: background-color 0.3s;
+}
+
+th.sortable:hover {
+    background-color: #5d4ed6;
+}
+
+th.sortable .ordem:after {
+    content: '\25BC\25B2';
+    opacity: 0.5;
+    margin-left: 8px;
+    font-size: 0.7em;
+}
+
+th.sortable.asc .ordem:after {
+    content: '\25B2';
+    opacity: 1;
+}
+
+th.sortable.desc .ordem:after {
+    content: '\25BC';
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    table {
+        font-size: 0.9rem;
+    }
+    
+    th, td {
+        padding: 8px 10px;
+    }
+    
+    .btn-editar, .btn-excluir {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .form-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-buttons button {
+        margin: 5px 0;
+    }
+    
+    #btnCancelar {
+        margin-left: 0;
+    }
+}
+
+/* Estilos para seção de salário */
+#infoSalario {
+    background-color: white;
+    padding: var(--espacamento);
+    border-radius: var(--borda-radius);
+    box-shadow: var(--sombra-suave);
+    margin-bottom: 20px;
+}
+
+/* Container para as seções de orçamento */
+.container-orcamento {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+#infoSalario, #analiseOrcamento, #resumoDespesas {
+    flex: 1;
+    margin-bottom: 0;
+    min-height: 200px; /* Altura mínima para padronizar os quadros */
+    display: flex;
+    flex-direction: column;
+}
+
+#analiseOrcamento {
+    margin-top: 0;
+}
+
+#analiseOrcamento h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.salario-input {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.salario-input label {
+    flex: 1;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+.salario-input input {
+    flex: 2;
+    margin-bottom: 0;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+.salario-input button {
+    flex: 0 0 auto;
+    background-color: var(--cor-primaria);
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+/* Estilos para análise de orçamento */
+#analiseOrcamento {
+    background-color: white;
+    padding: var(--espacamento);
+    border-radius: var(--borda-radius);
+    box-shadow: var(--sombra-suave);
+}
+
+.barra-progresso-container {
+    margin: 20px 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 15px; /* Reduzido o espaçamento */
+}
+
+.barra-progresso {
+    height: 25px; /* Reduzido para 25px */
+    background-color: #eee;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progresso {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, var(--cor-sucesso), var(--cor-edicao), var(--cor-perigo));
+    border-radius: 12px;
+    transition: width 0.5s ease;
+}
+
+.info-progresso {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Reduzido o espaçamento */
+    margin-bottom: 15px;
+    font-size: 1rem; /* Reduzido o tamanho da fonte */
+    letter-spacing: 0.3px;
+}
+
+.info-progresso p {
+    margin: 0;
+    padding: 8px 12px; /* Reduzido o padding */
+    background-color: #f8f9fa;
+    border-radius: var(--borda-radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem; /* Ainda menor para os valores */
+}
+
+.info-progresso p:first-child {
+    font-weight: 600;
+    color: var(--cor-primaria);
+    font-size: 1.1rem; /* Um pouco maior para o percentual */
+}
+
+.status-orcamento {
+    text-align: center;
+    padding: 15px;
+    border-radius: var(--borda-radius);
+    margin-top: 15px;
+    font-weight: 500;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+}
+
+/* Cores para diferentes estados do orçamento */
+.status-bom {
+    background-color: rgba(0, 184, 148, 0.1);
+    color: var(--cor-sucesso);
+}
+
+.status-atencao {
+    background-color: rgba(253, 203, 110, 0.1);
+    color: #f0932b;
+}
+
+.status-perigo {
+    background-color: rgba(214, 48, 49, 0.1);
+    color: var(--cor-perigo);
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container-orcamento {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    #infoSalario, #analiseOrcamento {
+        margin-bottom: 15px;
+    }
+    
+    table {
+        font-size: 0.9rem;
+    }
+    
+    th, td {
+        padding: 8px 10px;
+    }
+    
+    .btn-editar, .btn-excluir {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .form-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-buttons button {
+        margin: 5px 0;
+    }
+    
+    #btnCancelar {
+        margin-left: 0;
+    }
+}
+
+/* Estilos para o container de pessoas */
+.pessoas-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#listaPessoas {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pessoa-card {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: var(--borda-radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #eee;
+}
+
+.pessoa-info {
+    flex: 1;
+}
+
+.pessoa-nome {
+    font-weight: 600;
+    color: var(--cor-primaria);
+    margin-bottom: 5px;
+}
+
+.pessoa-salario {
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.pessoa-acoes {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-adicionar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: var(--cor-sucesso);
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: var(--borda-radius);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-adicionar span {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.btn-adicionar:hover {
+    background-color: #00a383;
+}
+
+/* Estilos para o modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 25px;
+    border-radius: var(--borda-radius);
+    width: 90%;
+    max-width: 400px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--cor-primaria);
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Estilos para o resumo por pessoa */
+#resumoPorPessoa {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.resumo-pessoa {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: var(--borda-radius);
+    border: 1px solid #eee;
+}
+
+.resumo-pessoa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.resumo-pessoa-nome {
+    font-weight: 600;
+    color: var(--cor-primaria);
+}
+
+.resumo-pessoa-valores {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+.resumo-pessoa-valores p {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+}
