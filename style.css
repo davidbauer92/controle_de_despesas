@@ -1,6 +1,6 @@
 /* Estilo básico para a página */
 :root {
-    --cor-primaria: #6c5ce7;
+    --cor-primaria: #3716f0;
     --cor-secundaria: #a29bfe;
     --cor-fundo: #f9f9f9;
     --cor-texto: #333;
@@ -34,6 +34,76 @@ h1 {
     padding-bottom: 0.5rem;
     border-bottom: 2px solid var(--cor-secundaria);
 }
+
+/* Estilo para o header para acomodar os botões de autenticação */
+header {
+    display: flex; /* Transforma o header em um container flex */
+    align-items: center;
+    justify-content: space-between; /* Distribui o espaço entre os itens */
+    padding: 20px;
+    background-color: var(--cor-primaria);
+    color: white;
+    border-radius: var(--borda-radius);
+    margin-bottom: 20px;
+    box-shadow: var(--sombra-suave);
+    /* position: relative; REMOVIDO: Não é mais necessário com flexbox para posicionamento */
+}
+
+header h1 {
+    color: white;
+    margin: 0 auto; /* Centraliza o H1 dentro do espaço disponível */
+    flex-grow: 1; /* Permite que o H1 ocupe o espaço restante */
+    text-align: center; /* Garante que o texto do H1 continue centralizado */
+    border-bottom: none;
+}
+
+/* Estilos para a UI de autenticação (MOVIDOS DO SCRIPT.JS) */
+.auth-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* margin-left: auto; REMOVIDO: justify-content: space-between no header já faz o trabalho */
+    padding-right: 20px; /* Mantém o padding à direita */
+    /* REMOVIDO: Posicionamento absoluto não é mais necessário com flexbox */
+    /* position: absolute; */
+    /* right: 0; */
+    /* top: 50%; */
+    /* transform: translateY(-50%); */
+    /* z-index: 10; */
+}
+
+.user-display {
+    font-weight: 500;
+    color: var(--cor-texto);
+}
+
+.btn-login, .btn-logout {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+.btn-login {
+    background-color: #4285F4;
+    color: white;
+}
+
+.btn-login:hover {
+    background-color: #357ae8;
+}
+
+.btn-logout {
+    background-color: var(--cor-perigo);
+    color: white;
+}
+
+.btn-logout:hover {
+    background-color: #c0392b;
+}
+
 
 form {
     background-color: #fff;
@@ -197,7 +267,7 @@ button[type="submit"]:hover {
 /* Estilo para o botão quando está no modo de edição */
 button[type="submit"].modo-edicao {
     background-color: var(--cor-edicao);
-    color: #333;
+    color: var(--cor-texto);
 }
 
 button[type="submit"].modo-edicao:hover {
@@ -273,6 +343,28 @@ th.sortable.desc .ordem:after {
     #btnCancelar {
         margin-left: 0;
     }
+
+    /* Ajuste para mobile no header */
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-bottom: 10px;
+        justify-content: flex-start; /* Ajuste para mobile */
+    }
+    header h1 {
+        margin-bottom: 10px;
+        margin-left: 0; /* Remove auto margin para mobile */
+        margin-right: 0; /* Remove auto margin para mobile */
+    }
+    .auth-status {
+        position: static;
+        transform: none;
+        width: 100%;
+        justify-content: flex-start;
+        padding-right: 0;
+        margin-top: 10px;
+        margin-left: 0; /* Remove auto margin para mobile */
+    }
 }
 
 /* Estilos para seção de salário */
@@ -294,7 +386,7 @@ th.sortable.desc .ordem:after {
 #infoSalario, #analiseOrcamento, #resumoDespesas {
     flex: 1;
     margin-bottom: 0;
-    min-height: 200px; /* Altura mínima para padronizar os quadros */
+    min-height: 200px;
     display: flex;
     flex-direction: column;
 }
@@ -349,11 +441,11 @@ th.sortable.desc .ordem:after {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 15px; /* Reduzido o espaçamento */
+    gap: 15px;
 }
 
 .barra-progresso {
-    height: 25px; /* Reduzido para 25px */
+    height: 25px;
     background-color: #eee;
     border-radius: 12px;
     overflow: hidden;
@@ -372,27 +464,27 @@ th.sortable.desc .ordem:after {
 .info-progresso {
     display: flex;
     flex-direction: column;
-    gap: 12px; /* Reduzido o espaçamento */
+    gap: 12px;
     margin-bottom: 15px;
-    font-size: 1rem; /* Reduzido o tamanho da fonte */
+    font-size: 1rem;
     letter-spacing: 0.3px;
 }
 
 .info-progresso p {
     margin: 0;
-    padding: 8px 12px; /* Reduzido o padding */
+    padding: 8px 12px;
     background-color: #f8f9fa;
     border-radius: var(--borda-radius);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.95rem; /* Ainda menor para os valores */
+    font-size: 0.95rem;
 }
 
-.info-progresso p:first-child {
+.info-progresso p:last-child {
     font-weight: 600;
     color: var(--cor-primaria);
-    font-size: 1.1rem; /* Um pouco maior para o percentual */
+    font-size: 1.1rem;
 }
 
 .status-orcamento {
@@ -419,47 +511,6 @@ th.sortable.desc .ordem:after {
 .status-perigo {
     background-color: rgba(214, 48, 49, 0.1);
     color: var(--cor-perigo);
-}
-
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-    
-    .container-orcamento {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    #infoSalario, #analiseOrcamento {
-        margin-bottom: 15px;
-    }
-    
-    table {
-        font-size: 0.9rem;
-    }
-    
-    th, td {
-        padding: 8px 10px;
-    }
-    
-    .btn-editar, .btn-excluir {
-        padding: 4px 8px;
-        font-size: 0.8rem;
-    }
-    
-    .form-buttons {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .form-buttons button {
-        margin: 5px 0;
-    }
-    
-    #btnCancelar {
-        margin-left: 0;
-    }
 }
 
 /* Estilos para o container de pessoas */

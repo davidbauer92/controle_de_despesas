@@ -14,6 +14,7 @@
 <body>
     <header>
         <h1>Controle de Despesas</h1>
+        <!-- O authStatusDiv e botões serão injetados aqui pelo script.js -->
     </header>
     
     <main>
@@ -31,11 +32,10 @@
             </section>
 
             <section id="resumoDespesas">
-                <h2>Resumo de Despesas</h2>
+                <h2>Resumo por Pessoa</h2>
                 <div id="resumoPorPessoa">
                     <!-- Resumo por pessoa será inserido aqui -->
                 </div>
-                <p><strong>Total Geral:</strong> <span id="totalGeral">R$ 0,00</span></p>
             </section>
         </div>
 
@@ -57,7 +57,7 @@
             <input type="number" id="valor" step="0.01" required><br>
             
             <div class="form-buttons">
-                <button type="submit">Adicionar Despesa</button>
+                <button type="submit" id="btnSalvar">Adicionar Despesa</button>
                 <button type="button" id="btnCancelar" style="display: none;">Cancelar</button>
             </div>
         </form>
@@ -67,10 +67,10 @@
             <table id="tabelaDespesas">
                 <thead>
                     <tr>
-                        <th class="sortable" data-coluna="data">Data <span class="ordem"></span></th>
-                        <th class="sortable" data-coluna="tipo">Tipo de Despesa <span class="ordem"></span></th>
-                        <th class="sortable" data-coluna="descricao">Descrição <span class="ordem"></span></th>
-                        <th class="sortable" data-coluna="valor">Valor (R$) <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="data" onclick="window.ordenarTabela('data')">Data <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="tipo" onclick="window.ordenarTabela('tipo')">Tipo de Despesa <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="descricao" onclick="window.ordenarTabela('descricao')">Descrição <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="valor" onclick="window.ordenarTabela('valor')">Valor (R$) <span class="ordem"></span></th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -87,9 +87,9 @@
                     <div class="progresso" id="barraCompromisso"></div>
                 </div>
                 <div class="info-progresso">
-                    <p>Total Familiar: <span id="exibeSalario">R$ 0,00</span></p>
                     <p>Total Despesas: <span id="totalDespesas">R$ 0,00</span></p>
                     <p>Disponível: <span id="valorDisponivel">R$ 0,00</span></p>
+                    <p>Total Familiar: <span id="exibeSalario">R$ 0,00</span></p>
                 </div>
             </div>
             <div class="status-orcamento">
@@ -117,6 +117,18 @@
         </div>
     </div>
 
-    <script src="script.js"></script> <!-- Link para o arquivo JavaScript -->
+    <!-- O modal de confirmação customizado é injetado via JavaScript no script.js -->
+
+    <script type="importmap">
+        {
+          "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"
+          }
+        }
+    </script>
+        
+    <script src="script.js" type="module"></script>
 </body>
 </html>
