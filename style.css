@@ -1,4 +1,4 @@
-/* Estilo básico para a página */
+/* Estilo básico e variáveis */
 :root {
     --cor-primaria: #3716f0;
     --cor-secundaria: #a29bfe;
@@ -7,6 +7,7 @@
     --cor-sucesso: #00b894;
     --cor-edicao: #fdcb6e;
     --cor-perigo: #d63031;
+    --cor-google: #4285F4;
     --sombra-suave: 0 4px 6px rgba(0, 0, 0, 0.05);
     --borda-radius: 8px;
     --espacamento: 20px;
@@ -29,82 +30,45 @@ h1, h2, h3 {
 
 h1 {
     font-size: 2.2rem;
-    margin-bottom: 1.5rem;
     text-align: center;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--cor-secundaria);
 }
 
-/* Estilo para o header para acomodar os botões de autenticação */
+/* Utilitários */
+.hidden {
+    display: none !important; /* !important para garantir a sobreposição de estilos inline */
+}
+
+/* Header e Autenticação */
 header {
-    display: flex; /* Transforma o header em um container flex */
+    display: flex;
     align-items: center;
-    justify-content: space-between; /* Distribui o espaço entre os itens */
-    padding: 20px;
+    justify-content: space-between;
+    padding: var(--espacamento);
     background-color: var(--cor-primaria);
     color: white;
     border-radius: var(--borda-radius);
     margin-bottom: 20px;
     box-shadow: var(--sombra-suave);
-    /* position: relative; REMOVIDO: Não é mais necessário com flexbox para posicionamento */
 }
 
 header h1 {
     color: white;
-    margin: 0 auto; /* Centraliza o H1 dentro do espaço disponível */
-    flex-grow: 1; /* Permite que o H1 ocupe o espaço restante */
-    text-align: center; /* Garante que o texto do H1 continue centralizado */
-    border-bottom: none;
+    margin: 0;
+    flex-grow: 1;
+    text-align: center;
 }
 
-/* Estilos para a UI de autenticação (MOVIDOS DO SCRIPT.JS) */
-.auth-status {
+.auth-container {
     display: flex;
     align-items: center;
     gap: 10px;
-    /* margin-left: auto; REMOVIDO: justify-content: space-between no header já faz o trabalho */
-    padding-right: 20px; /* Mantém o padding à direita */
-    /* REMOVIDO: Posicionamento absoluto não é mais necessário com flexbox */
-    /* position: absolute; */
-    /* right: 0; */
-    /* top: 50%; */
-    /* transform: translateY(-50%); */
-    /* z-index: 10; */
 }
 
 .user-display {
     font-weight: 500;
-    color: var(--cor-texto);
 }
 
-.btn-login, .btn-logout {
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: background-color 0.3s ease;
-}
-
-.btn-login {
-    background-color: #4285F4;
-    color: white;
-}
-
-.btn-login:hover {
-    background-color: #357ae8;
-}
-
-.btn-logout {
-    background-color: var(--cor-perigo);
-    color: white;
-}
-
-.btn-logout:hover {
-    background-color: #c0392b;
-}
-
-
+/* Formulários */
 form {
     background-color: #fff;
     padding: var(--espacamento);
@@ -112,6 +76,10 @@ form {
     box-shadow: var(--sombra-suave);
     max-width: 500px;
     margin: 0 auto 30px auto;
+}
+
+.form-group {
+    margin-bottom: 15px;
 }
 
 label {
@@ -123,7 +91,6 @@ label {
 
 input, select {
     padding: 10px;
-    margin-bottom: 15px;
     width: 100%;
     box-sizing: border-box;
     border: 1px solid #ddd;
@@ -140,13 +107,13 @@ input:focus, select:focus {
 .form-buttons {
     display: flex;
     justify-content: flex-start;
-    align-items: center;
+    gap: 10px;
     margin-top: 10px;
 }
 
+/* Botões */
 button {
     padding: 12px 20px;
-    background-color: var(--cor-primaria);
     color: white;
     border: none;
     border-radius: var(--borda-radius);
@@ -156,7 +123,6 @@ button {
 }
 
 button:hover {
-    background-color: #5d4ed6;
     transform: translateY(-2px);
 }
 
@@ -164,10 +130,102 @@ button:active {
     transform: translateY(0);
 }
 
+.btn-login, .btn-logout {
+    padding: 8px 15px;
+    font-size: 0.9em;
+}
+
+.btn-login {
+    background-color: var(--cor-google);
+}
+
+.btn-login:hover {
+    background-color: #357ae8;
+}
+
+.btn-logout {
+    background-color: var(--cor-perigo);
+}
+
+.btn-logout:hover {
+    background-color: #c0392b;
+}
+
+button[type="submit"] {
+    background-color: var(--cor-sucesso);
+}
+button[type="submit"]:hover {
+    background-color: #00a383;
+}
+button[type="submit"].modo-edicao {
+    background-color: var(--cor-edicao);
+    color: var(--cor-texto);
+}
+button[type="submit"].modo-edicao:hover {
+    background-color: #f0b84d;
+}
+
+#btnCancelar {
+    background-color: var(--cor-perigo);
+}
+#btnCancelar:hover {
+    background-color: #b52324;
+}
+
+#btnCancelarPessoa {
+    background-color: var(--cor-perigo); /* Usa a variável de cor vermelha que já definimos */
+}
+
+#btnCancelarPessoa:hover {
+    background-color: #b52324; /* Um vermelho um pouco mais escuro no hover, para consistência */
+}
+
+.btn-adicionar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: var(--cor-sucesso);
+    padding: 10px 15px;
+}
+.btn-adicionar span {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+.btn-adicionar:hover {
+    background-color: #00a383;
+}
+
+/* Estilos base para botões de ação na tabela e cards */
+.btn-acao {
+    padding: 6px 12px;
+    border: none;
+    border-radius: var(--borda-radius);
+    cursor: pointer;
+    color: white;
+}
+.btn-acao.editar {
+    background-color: var(--cor-primaria);
+    margin-right: 5px;
+}
+.btn-acao.editar:hover {
+    background-color: #5d4ed6;
+}
+.btn-acao.excluir {
+    background-color: var(--cor-perigo);
+}
+.btn-acao.excluir:hover {
+    background-color: #b52324;
+}
+
+/* Tabela */
+.tabela-container {
+    margin-bottom: 30px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
     background-color: white;
     border-radius: var(--borda-radius);
     overflow: hidden;
@@ -194,247 +252,88 @@ tr:hover {
     background-color: rgba(108, 92, 231, 0.05);
 }
 
-#resumoDespesas {
-    background-color: white;
-    padding: var(--espacamento);
-    border-radius: var(--borda-radius);
-    box-shadow: var(--sombra-suave);
-    margin-top: 0;
-}
-
-#resumoDespesas h2 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
-
-#resumoDespesas p {
-    display: flex;
-    justify-content: space-between;
-    margin: 10px 0;
-    padding: 8px 12px;
-    background-color: #f8f9fa;
-    border-radius: var(--borda-radius);
-}
-
-#resumoDespesas p:last-child {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 2px solid #eee;
-    font-size: 1.1rem;
-    font-weight: 600;
-    background-color: #f0f0f0;
-}
-
-.btn-excluir {
-    background-color: var(--cor-perigo);
-    color: white;
-    padding: 6px 12px;
-    border: none;
-    border-radius: var(--borda-radius);
-    cursor: pointer;
-}
-
-.btn-excluir:hover {
-    background-color: #b52324;
-}
-
-.btn-editar {
-    background-color: var(--cor-primaria);
-    color: white;
-    padding: 6px 12px;
-    border: none;
-    border-radius: var(--borda-radius);
-    cursor: pointer;
-    margin-right: 5px;
-}
-
-.btn-editar:hover {
-    background-color: #5d4ed6;
-}
-
-/* Estilo para o botão de envio padrão */
-button[type="submit"] {
-    background-color: var(--cor-sucesso);
-    width: auto;
-}
-
-button[type="submit"]:hover {
-    background-color: #00a383;
-}
-
-/* Estilo para o botão quando está no modo de edição */
-button[type="submit"].modo-edicao {
-    background-color: var(--cor-edicao);
-    color: var(--cor-texto);
-}
-
-button[type="submit"].modo-edicao:hover {
-    background-color: #f0b84d;
-}
-
-/* Estilo para botão cancelar */
-#btnCancelar {
-    background-color: var(--cor-perigo);
-    margin-left: 10px;
-}
-
-#btnCancelar:hover {
-    background-color: #b52324;
-}
-
-/* Estilos para ordenação de tabela */
+/* Ordenação de Tabela */
 th.sortable {
     cursor: pointer;
     position: relative;
     user-select: none;
     transition: background-color 0.3s;
 }
-
 th.sortable:hover {
     background-color: #5d4ed6;
 }
-
-th.sortable .ordem:after {
-    content: '\25BC\25B2';
+th.sortable .ordem::after {
+    content: '\25BC\25B2'; /* setas para cima e para baixo */
     opacity: 0.5;
     margin-left: 8px;
     font-size: 0.7em;
 }
-
-th.sortable.asc .ordem:after {
-    content: '\25B2';
+th.sortable.asc .ordem::after {
+    content: '\25B2'; /* seta para cima */
+    opacity: 1;
+}
+th.sortable.desc .ordem::after {
+    content: '\25BC'; /* seta para baixo */
     opacity: 1;
 }
 
-th.sortable.desc .ordem:after {
-    content: '\25BC';
-    opacity: 1;
+/* Orçamento e Resumo */
+.container-orcamento {
+    display: flex;
+    flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha em telas menores */
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-    
-    table {
-        font-size: 0.9rem;
-    }
-    
-    th, td {
-        padding: 8px 10px;
-    }
-    
-    .btn-editar, .btn-excluir {
-        padding: 4px 8px;
-        font-size: 0.8rem;
-    }
-    
-    .form-buttons {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .form-buttons button {
-        margin: 5px 0;
-    }
-    
-    #btnCancelar {
-        margin-left: 0;
-    }
-
-    /* Ajuste para mobile no header */
-    header {
-        flex-direction: column;
-        align-items: flex-start;
-        padding-bottom: 10px;
-        justify-content: flex-start; /* Ajuste para mobile */
-    }
-    header h1 {
-        margin-bottom: 10px;
-        margin-left: 0; /* Remove auto margin para mobile */
-        margin-right: 0; /* Remove auto margin para mobile */
-    }
-    .auth-status {
-        position: static;
-        transform: none;
-        width: 100%;
-        justify-content: flex-start;
-        padding-right: 0;
-        margin-top: 10px;
-        margin-left: 0; /* Remove auto margin para mobile */
-    }
-}
-
-/* Estilos para seção de salário */
-#infoSalario {
+#infoSalario, #resumoDespesas, #analiseOrcamento {
     background-color: white;
     padding: var(--espacamento);
     border-radius: var(--borda-radius);
     box-shadow: var(--sombra-suave);
-    margin-bottom: 20px;
-}
-
-/* Container para as seções de orçamento */
-.container-orcamento {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
-}
-
-#infoSalario, #analiseOrcamento, #resumoDespesas {
     flex: 1;
-    margin-bottom: 0;
-    min-height: 200px;
+    min-width: 280px; /* Largura mínima para evitar que fiquem muito espremidos */
     display: flex;
     flex-direction: column;
 }
 
-#analiseOrcamento {
-    margin-top: 0;
-}
-
-#analiseOrcamento h2 {
+#infoSalario h2, #resumoDespesas h2, #analiseOrcamento h2 {
     margin-top: 0;
     margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
 }
 
-.salario-input {
+/* Pessoas */
+.pessoas-container, #listaPessoas, #resumoPorPessoa {
     display: flex;
-    align-items: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+    flex-direction: column;
+    gap: 15px;
 }
-
-.salario-input label {
-    flex: 1;
-    font-size: 1.1rem;
-    letter-spacing: 0.5px;
-}
-
-.salario-input input {
-    flex: 2;
-    margin-bottom: 0;
-    font-size: 1.1rem;
-    letter-spacing: 0.5px;
-}
-
-.salario-input button {
-    flex: 0 0 auto;
-    background-color: var(--cor-primaria);
-    font-size: 1.1rem;
-    letter-spacing: 0.5px;
-}
-
-/* Estilos para análise de orçamento */
-#analiseOrcamento {
-    background-color: white;
-    padding: var(--espacamento);
+.pessoa-card, .resumo-pessoa {
+    background-color: #f8f9fa;
+    padding: 15px;
     border-radius: var(--borda-radius);
-    box-shadow: var(--sombra-suave);
+    border: 1px solid #eee;
 }
+.pessoa-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.pessoa-info { flex: 1; }
+.pessoa-nome, .resumo-pessoa-nome {
+    font-weight: 600;
+    color: var(--cor-primaria);
+    margin-bottom: 5px;
+}
+.pessoa-salario, .resumo-pessoa-valores {
+    font-size: 0.95rem;
+    color: #666;
+}
+.pessoa-acoes { display: flex; gap: 8px; }
+.resumo-pessoa-valores p { display: flex; justify-content: space-between; margin: 0; }
 
+/* Análise e Barra de Progresso */
 .barra-progresso-container {
     margin: 20px 0;
     flex-grow: 1;
@@ -443,16 +342,13 @@ th.sortable.desc .ordem:after {
     justify-content: center;
     gap: 15px;
 }
-
 .barra-progresso {
     height: 25px;
     background-color: #eee;
     border-radius: 12px;
     overflow: hidden;
-    margin-bottom: 15px;
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
-
 .progresso {
     height: 100%;
     width: 0%;
@@ -460,16 +356,12 @@ th.sortable.desc .ordem:after {
     border-radius: 12px;
     transition: width 0.5s ease;
 }
-
 .info-progresso {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-bottom: 15px;
     font-size: 1rem;
-    letter-spacing: 0.3px;
 }
-
 .info-progresso p {
     margin: 0;
     padding: 8px 12px;
@@ -477,110 +369,24 @@ th.sortable.desc .ordem:after {
     border-radius: var(--borda-radius);
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    font-size: 0.95rem;
 }
-
 .info-progresso p:last-child {
     font-weight: 600;
     color: var(--cor-primaria);
     font-size: 1.1rem;
 }
-
 .status-orcamento {
     text-align: center;
     padding: 15px;
     border-radius: var(--borda-radius);
     margin-top: 15px;
     font-weight: 500;
-    font-size: 1rem;
-    letter-spacing: 0.3px;
 }
+.status-bom { background-color: rgba(0, 184, 148, 0.1); color: var(--cor-sucesso); }
+.status-atencao { background-color: rgba(253, 203, 110, 0.1); color: #f0932b; }
+.status-perigo { background-color: rgba(214, 48, 49, 0.1); color: var(--cor-perigo); }
 
-/* Cores para diferentes estados do orçamento */
-.status-bom {
-    background-color: rgba(0, 184, 148, 0.1);
-    color: var(--cor-sucesso);
-}
-
-.status-atencao {
-    background-color: rgba(253, 203, 110, 0.1);
-    color: #f0932b;
-}
-
-.status-perigo {
-    background-color: rgba(214, 48, 49, 0.1);
-    color: var(--cor-perigo);
-}
-
-/* Estilos para o container de pessoas */
-.pessoas-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-#listaPessoas {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.pessoa-card {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: var(--borda-radius);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid #eee;
-}
-
-.pessoa-info {
-    flex: 1;
-}
-
-.pessoa-nome {
-    font-weight: 600;
-    color: var(--cor-primaria);
-    margin-bottom: 5px;
-}
-
-.pessoa-salario {
-    font-size: 0.95rem;
-    color: #666;
-}
-
-.pessoa-acoes {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-adicionar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background-color: var(--cor-sucesso);
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: var(--borda-radius);
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.btn-adicionar span {
-    font-size: 1.2rem;
-    font-weight: bold;
-}
-
-.btn-adicionar:hover {
-    background-color: #00a383;
-}
-
-/* Estilos para o modal */
+/* Modal */
 .modal {
     display: none;
     position: fixed;
@@ -590,70 +396,86 @@ th.sortable.desc .ordem:after {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
+    align-items: center;
+    justify-content: center;
 }
-
+.modal.active {
+    display: flex; /* Usar flex para centralizar o conteúdo */
+}
 .modal-content {
     background-color: white;
     padding: 25px;
     border-radius: var(--borda-radius);
     width: 90%;
     max-width: 400px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
 .modal-content h3 {
     margin-top: 0;
     margin-bottom: 20px;
-    color: var(--cor-primaria);
 }
-
 .modal-buttons {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
     margin-top: 20px;
 }
-
-/* Estilos para o resumo por pessoa */
-#resumoPorPessoa {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
+#customConfirmModal .modal-buttons button {
+    padding: 10px 20px;
+    font-size: 1em;
+}
+#customConfirmModal #confirmModalBtnConfirm {
+    background-color: var(--cor-perigo);
+}
+#customConfirmModal #confirmModalBtnCancel {
+    background-color: #bdc3c7;
+    color: #333;
 }
 
-.resumo-pessoa {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: var(--borda-radius);
-    border: 1px solid #eee;
-}
+/* Media Queries para responsividade */
+@media (max-width: 768px) {
+    body { padding: 10px; }
+    header { flex-direction: column; align-items: stretch; gap: 15px; }
+    header h1 { text-align: center; }
+    .auth-container { justify-content: center; }
+    .form-buttons { flex-direction: column; align-items: stretch; }
+    .form-buttons button { margin: 5px 0; }
 
-.resumo-pessoa-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
+    /* Forçar a quebra das colunas de orçamento */
+    .container-orcamento {
+        flex-direction: column;
+    }
 
-.resumo-pessoa-nome {
-    font-weight: 600;
-    color: var(--cor-primaria);
-}
-
-.resumo-pessoa-valores {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 0.95rem;
-}
-
-.resumo-pessoa-valores p {
-    display: flex;
-    justify-content: space-between;
-    margin: 0;
+    /* Ajustar a tabela para telas pequenas */
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    tr { border: 1px solid #ccc; margin-bottom: 10px; }
+    td {
+        border: none;
+        border-bottom: 1px solid #eee;
+        position: relative;
+        padding-left: 50%;
+        text-align: right;
+    }
+    td:before {
+        position: absolute;
+        left: 6px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        content: attr(data-label);
+    }
+    td[data-label="Ações"] {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
 }

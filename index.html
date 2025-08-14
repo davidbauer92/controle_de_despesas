@@ -9,12 +9,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css"> <!-- Link para o arquivo CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
         <h1>Controle de Despesas</h1>
-        <!-- O authStatusDiv e botões serão injetados aqui pelo script.js -->
+        <div id="auth-container" class="auth-container"></div>
     </header>
     
     <main>
@@ -23,8 +23,7 @@
                 <h2>Orçamento Familiar</h2>
                 <div class="pessoas-container">
                     <div id="listaPessoas">
-                        <!-- Pessoas serão adicionadas aqui -->
-                    </div>
+                        </div>
                     <button type="button" id="btnAdicionarPessoa" class="btn-adicionar">
                         <span>+</span> Adicionar Pessoa
                     </button>
@@ -34,49 +33,55 @@
             <section id="resumoDespesas">
                 <h2>Resumo por Pessoa</h2>
                 <div id="resumoPorPessoa">
-                    <!-- Resumo por pessoa será inserido aqui -->
-                </div>
+                    </div>
             </section>
         </div>
 
         <form id="formDespesa">
-            <label for="data">Data:</label>
-            <input type="datetime-local" id="data" required><br>
+            <div class="form-group">
+                <label for="data">Data:</label>
+                <input type="datetime-local" id="data" required>
+            </div>
             
-            <label for="tipo">Tipo:</label>
-            <select id="tipo">
-                <option value="Fixa">Fixas</option>
-                <option value="Variavel">Variáveis</option>
-                <option value="Outras">Outras</option>
-            </select><br>
+            <div class="form-group">
+                <label for="tipo">Tipo:</label>
+                <select id="tipo">
+                    <option value="Fixa">Fixas</option>
+                    <option value="Variavel">Variáveis</option>
+                    <option value="Outras">Outras</option>
+                </select>
+            </div>
             
-            <label for="descricao">Descrição:</label>
-            <input type="text" id="descricao" required><br>
+            <div class="form-group">
+                <label for="descricao">Descrição:</label>
+                <input type="text" id="descricao" required>
+            </div>
             
-            <label for="valor">Valor (R$):</label>
-            <input type="number" id="valor" step="0.01" required><br>
+            <div class="form-group">
+                <label for="valor">Valor (R$):</label>
+                <input type="number" id="valor" step="0.01" required>
+            </div>
             
             <div class="form-buttons">
                 <button type="submit" id="btnSalvar">Adicionar Despesa</button>
-                <button type="button" id="btnCancelar" style="display: none;">Cancelar</button>
+                <button type="button" id="btnCancelar" class="hidden">Cancelar</button>
             </div>
         </form>
 
-        <section>
+        <section class="tabela-container">
             <h2>Despesas do Mês</h2>
             <table id="tabelaDespesas">
                 <thead>
                     <tr>
-                        <th class="sortable" data-coluna="data" onclick="window.ordenarTabela('data')">Data <span class="ordem"></span></th>
-                        <th class="sortable" data-coluna="tipo" onclick="window.ordenarTabela('tipo')">Tipo de Despesa <span class="ordem"></span></th>
-                        <th class="sortable" data-coluna="descricao" onclick="window.ordenarTabela('descricao')">Descrição <span class="ordem"></span></th>
-                        <th class="sortable" data-coluna="valor" onclick="window.ordenarTabela('valor')">Valor (R$) <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="data">Data <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="tipo">Tipo de Despesa <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="descricao">Descrição <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="valor">Valor (R$) <span class="ordem"></span></th>
                         <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- As despesas serão inseridas aqui -->
-                </tbody>
+                    </tbody>
             </table>
         </section>
 
@@ -98,17 +103,18 @@
         </section>
     </main>
 
-    <!-- Modal para adicionar/editar pessoa -->
     <div id="modalPessoa" class="modal">
         <div class="modal-content">
             <h3>Adicionar Pessoa</h3>
             <form id="formPessoa">
-                <label for="nomePessoa">Nome:</label>
-                <input type="text" id="nomePessoa" required><br>
-                
-                <label for="salarioPessoa">Salário Mensal (R$):</label>
-                <input type="number" id="salarioPessoa" step="0.01" min="0" required><br>
-                
+                <div class="form-group">
+                    <label for="nomePessoa">Nome:</label>
+                    <input type="text" id="nomePessoa" required>
+                </div>
+                <div class="form-group">
+                    <label for="salarioPessoa">Salário Mensal (R$):</label>
+                    <input type="number" id="salarioPessoa" step="0.01" min="0" required>
+                </div>
                 <div class="modal-buttons">
                     <button type="submit">Salvar</button>
                     <button type="button" id="btnCancelarPessoa">Cancelar</button>
@@ -116,16 +122,24 @@
             </form>
         </div>
     </div>
-
-    <!-- O modal de confirmação customizado é injetado via JavaScript no script.js -->
+    
+    <div id="customConfirmModal" class="modal">
+        <div class="modal-content">
+            <h3 id="confirmModalMessage">Você tem certeza?</h3>
+            <div class="modal-buttons">
+                <button id="confirmModalBtnConfirm">Sim</button>
+                <button id="confirmModalBtnCancel">Não</button>
+            </div>
+        </div>
+    </div>
 
     <script type="importmap">
         {
-          "imports": {
-            "firebase/app": "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js",
-            "firebase/firestore": "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js",
-            "firebase/auth": "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"
-          }
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"
+            }
         }
     </script>
         
