@@ -17,7 +17,32 @@
         <div id="auth-container" class="auth-container"></div>
     </header>
     
-    <main>
+    <main class="bloqueado">
+        <section class="login-alert">
+            <h2>Entre com sua conta Google</h2>
+            <p>Para proteger seus registros, o controle de despesas só fica disponível após o login.</p>
+        </section>
+        <section class="painel-controle">
+            <div>
+                <h2>Mês em análise</h2>
+                <div class="mes-controles">
+                    <button type="button" id="btnMesAnterior">← Mês anterior</button>
+                    <strong id="mesAtualLabel">Mês atual</strong>
+                    <button type="button" id="btnProximoMes">Próximo mês →</button>
+                    <button type="button" id="btnMesAtual" class="btn-secundario">Voltar ao mês atual</button>
+                </div>
+            </div>
+            <div class="email-preferencial">
+                <h2>E-mail do resumo</h2>
+                <div class="email-row">
+                    <input type="email" id="emailPreferencial" placeholder="seuemail@exemplo.com">
+                    <button type="button" id="btnSalvarEmail">Salvar e-mail</button>
+                    <button type="button" id="btnEnviarResumo" class="btn-secundario">Gerar resumo por e-mail</button>
+                </div>
+                <p class="observacao">O envio abre seu aplicativo de e-mail com o resumo preenchido. Para envio automático, será preciso integrar um serviço de e-mail.</p>
+            </div>
+        </section>
+
         <div class="container-orcamento">
             <section id="infoSalario">
                 <h2>Orçamento Familiar</h2>
@@ -44,6 +69,13 @@
             </div>
             
             <div class="form-group">
+                <label for="pessoaDespesa">Pessoa responsável:</label>
+                <select id="pessoaDespesa" required>
+                    <option value="">Selecione uma pessoa</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="tipo">Tipo:</label>
                 <select id="tipo">
                     <option value="Fixa">Fixas</option>
@@ -52,6 +84,21 @@
                 </select>
             </div>
             
+            <div class="form-group">
+                <label for="categoria">Categoria:</label>
+                <input type="text" id="categoria" list="categoriasSugeridas" placeholder="Mercado, aluguel, transporte...">
+                <datalist id="categoriasSugeridas">
+                    <option value="Aluguel"></option>
+                    <option value="Mercado"></option>
+                    <option value="Transporte"></option>
+                    <option value="Luz"></option>
+                    <option value="Água"></option>
+                    <option value="Internet"></option>
+                    <option value="Lazer"></option>
+                    <option value="Saúde"></option>
+                </datalist>
+            </div>
+
             <div class="form-group">
                 <label for="descricao">Descrição:</label>
                 <input type="text" id="descricao" required>
@@ -74,6 +121,7 @@
                 <thead>
                     <tr>
                         <th class="sortable" data-coluna="data">Data <span class="ordem"></span></th>
+                        <th class="sortable" data-coluna="pessoaNome">Pessoa <span class="ordem"></span></th>
                         <th class="sortable" data-coluna="tipo">Tipo de Despesa <span class="ordem"></span></th>
                         <th class="sortable" data-coluna="descricao">Descrição <span class="ordem"></span></th>
                         <th class="sortable" data-coluna="valor">Valor (R$) <span class="ordem"></span></th>
@@ -132,6 +180,19 @@
             </div>
         </div>
     </div>
+
+    <div id="modalFechamento" class="modal">
+        <div class="modal-content modal-fechamento">
+            <h3>Fechamento mensal</h3>
+            <p id="fechamentoMensagem">O mês anterior fechou. Seus registros mensais foram todos cadastrados?</p>
+            <div class="modal-buttons">
+                <button id="btnFechamentoSim">Sim, gerar resumo</button>
+                <button id="btnFechamentoNao" class="btn-secundario">Não, quero cadastrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
 
     <script type="importmap">
         {

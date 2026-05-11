@@ -479,3 +479,136 @@ th.sortable.desc .ordem::after {
         gap: 10px;
     }
 }
+/* Melhorias: login obrigatório, controle mensal, e-mail e avisos */
+main.bloqueado > *:not(.login-alert) {
+    display: none !important;
+}
+
+main:not(.bloqueado) .login-alert {
+    display: none;
+}
+
+.login-alert,
+.painel-controle {
+    background-color: #fff;
+    padding: var(--espacamento);
+    border-radius: var(--borda-radius);
+    box-shadow: var(--sombra-suave);
+    margin-bottom: 25px;
+}
+
+.login-alert {
+    text-align: center;
+}
+
+.painel-controle {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.mes-controles,
+.email-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#mesAtualLabel {
+    color: var(--cor-primaria);
+    background-color: #f1efff;
+    padding: 10px 14px;
+    border-radius: var(--borda-radius);
+    text-transform: capitalize;
+}
+
+.btn-secundario,
+#btnMesAnterior,
+#btnProximoMes,
+#btnMesAtual,
+#btnSalvarEmail,
+#btnEnviarResumo,
+#btnFechamentoNao {
+    background-color: var(--cor-primaria);
+}
+
+.btn-secundario:hover,
+#btnMesAnterior:hover,
+#btnProximoMes:hover,
+#btnMesAtual:hover,
+#btnSalvarEmail:hover,
+#btnEnviarResumo:hover,
+#btnFechamentoNao:hover {
+    background-color: #2d11c7;
+}
+
+.email-row input {
+    flex: 1;
+    min-width: 230px;
+}
+
+.observacao,
+.empty-state {
+    color: #666;
+    font-size: 0.92rem;
+    margin: 8px 0 0;
+}
+
+.tabela-vazia {
+    text-align: center;
+    padding: 25px;
+}
+
+.toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    min-width: 240px;
+    max-width: 420px;
+    padding: 14px 18px;
+    border-radius: var(--borda-radius);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    background-color: var(--cor-primaria);
+    color: white;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 2000;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.success {
+    background-color: var(--cor-sucesso);
+}
+
+.toast.error {
+    background-color: var(--cor-perigo);
+}
+
+.modal-fechamento p {
+    margin-bottom: 10px;
+}
+
+@media (min-width: 900px) {
+    .painel-controle {
+        grid-template-columns: 0.9fr 1.1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .mes-controles,
+    .email-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #mesAtualLabel {
+        text-align: center;
+    }
+}
