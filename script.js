@@ -8,9 +8,7 @@ import {
     getDoc,
     updateDoc,
     deleteDoc,
-    setDoc,
-    query,
-    where
+    setDoc
 } from 'firebase/firestore';
 import {
     getAuth,
@@ -130,7 +128,7 @@ const hideConfirmModal = () => {
     confirmCallback = null;
 };
 
-const getUserDocRef = () => doc(db, 'users', currentUserId);
+const getSettingsDocRef = () => doc(db, 'users', currentUserId, 'configuracoes', 'perfil');
 
 // --- AUTENTICAÇÃO ---
 const updateAuthUI = (user) => {
@@ -194,13 +192,20 @@ const clearUserData = () => {
 
 // --- CONFIGURAÇÕES DO USUÁRIO ---
 const carregarConfiguracoesUsuario = async () => {
-    const snapshot = await getDoc(getUserDocRef());
-    if (snapshot.exists()) {
-        userSettings = { ...userSettings, ...snapshot.data() };
-    } else {
-        await setDoc(getUserDocRef(), { emailPreferencial: currentUserEmail, ultimoMesFechado: '' }, { merge: true });
-        userSettings.emailPreferencial = currentUserEmail;
+    userSettings = { emailPreferencial: currentUserEmail, ultimoMesFechado: '' };
+
+    try {
+        const snapshot = await getDoc(getSettingsDocRef());
+        if (snapshot.exists()) {
+            userSettings = { ...userSettings, ...snapshot.data() };
+        } else {
+            await setDoc(getSettingsDocRef(), userSettings, { merge: true });
+        }
+    } catch (error) {
+        console.warn('Não foi possível carregar/salvar configurações do perfil:', error);
+        showToast('Não consegui carregar as configurações do perfil, mas seus cadastros serão carregados.', 'info');
     }
+
     DOMElements.emailPreferencialInput.value = userSettings.emailPreferencial || currentUserEmail || '';
 };
 
@@ -210,9 +215,16 @@ const salvarEmailPreferencial = async () => {
         showToast('Informe um e-mail válido.', 'error');
         return;
     }
+
     userSettings.emailPreferencial = email;
-    await setDoc(getUserDocRef(), { emailPreferencial: email }, { merge: true });
-    showToast('E-mail preferencial salvo.', 'success');
+
+    try {
+        await setDoc(getSettingsDocRef(), { emailPreferencial: email }, { merge: true });
+        showToast('E-mail preferencial salvo.', 'success');
+    } catch (error) {
+        console.error('Erro ao salvar e-mail preferencial:', error);
+        showToast('Erro ao salvar e-mail. Verifique as regras do Firestore.', 'error');
+    }
 };
 
 // --- FECHAMENTO MENSAL ---
@@ -234,7 +246,7 @@ const verificarFechamentoMensal = async () => {
 const confirmarFechamentoMensal = async () => {
     const mesFechado = DOMElements.btnFechamentoSim.dataset.mes;
     userSettings.ultimoMesFechado = mesFechado;
-    await setDoc(getUserDocRef(), { ultimoMesFechado: mesFechado }, { merge: true });
+    await setDoc(getSettingsDocRef(), { ultimoMesFechado: mesFechado }, { merge: true });
     toggleModal(DOMElements.modalFechamento, false);
 
     const despesasMesFechado = await buscarDespesasPorMes(mesFechado);
@@ -345,10 +357,34 @@ const handlePessoaActions = (event) => {
 };
 
 // --- DESPESAS ---
+const normalizarDespesaLegada = async (despesa) => {
+    if (despesa.mesReferencia || !despesa.data || !currentUserId) return despesa;
+
+    const mesReferencia = getMonthKey(new Date(despesa.data));
+    const despesaAtualizada = { ...despesa, mesReferencia };
+
+    try {
+        await updateDoc(doc(db, 'users', currentUserId, 'despesas', despesa.id), { mesReferencia });
+    } catch (error) {
+        console.warn('Não foi possível atualizar despesa antiga com mesReferencia:', error);
+    }
+
+    return despesaAtualizada;
+};
+
+const despesaPertenceAoMes = (despesa, monthKey) => {
+    if (despesa.mesReferencia) return despesa.mesReferencia === monthKey;
+    if (!despesa.data) return false;
+    return getMonthKey(new Date(despesa.data)) === monthKey;
+};
+
 const buscarDespesasPorMes = async (monthKey) => {
-    const q = query(collection(db, 'users', currentUserId, 'despesas'), where('mesReferencia', '==', monthKey));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map((documento) => ({ id: documento.id, ...documento.data() }));
+    const querySnapshot = await getDocs(collection(db, 'users', currentUserId, 'despesas'));
+    const todasDespesas = await Promise.all(
+        querySnapshot.docs.map((documento) => normalizarDespesaLegada({ id: documento.id, ...documento.data() }))
+    );
+
+    return todasDespesas.filter((despesa) => despesaPertenceAoMes(despesa, monthKey));
 };
 
 const carregarDespesasFirestore = async () => {
