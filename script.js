@@ -20,13 +20,13 @@ import {
 
 // --- CONFIGURAÇÃO FIREBASE ---
 const firebaseConfig = {
-    apiKey: "AIzaSyAaxjstnE3SBDZwcRfsVcIwbqUTqYCaHxA",
-    authDomain: "controlededespesas-9869f.firebaseapp.com",
-    projectId: "controlededespesas-9869f",
-    storageBucket: "controlededespesas-9869f.firebasestorage.app",
-    messagingSenderId: "52274036252",
-    appId: "1:52274036252:web:58559e65bd37b38166e9d9",
-    measurementId: "G-3B65ZE5ZBM"
+    apiKey: 'AIzaSyAaxjstnE3SBDZwcRfsVcIwbqUTqYCaHxA',
+    authDomain: 'controlededespesas-9869f.firebaseapp.com',
+    projectId: 'controlededespesas-9869f',
+    storageBucket: 'controlededespesas-9869f.firebasestorage.app',
+    messagingSenderId: '52274036252',
+    appId: '1:52274036252:web:58559e65bd37b38166e9d9',
+    measurementId: 'G-3B65ZE5ZBM'
 };
 
 const app = initializeApp(firebaseConfig);
@@ -36,102 +36,169 @@ const auth = getAuth(app);
 // --- ESTADO DA APLICAÇÃO ---
 let pessoas = [];
 let despesas = [];
-let userSettings = { emailPreferencial: '', ultimoMesFechado: '' };
 let despesaEmEdicaoId = null;
 let pessoaEmEdicaoId = null;
 let ordenacaoAtual = { coluna: 'data', ordem: 'desc' };
 let currentUserId = null;
 let currentUserEmail = '';
-let currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+let currentMonth = getMonthKey(new Date());
+let userSettings = { emailPreferencial: '', ultimoMesFechado: '' };
 let confirmCallback = null;
 
 // --- SELETORES DO DOM ---
 const DOMElements = {
+    mainContent: document.getElementById('app'),
     authContainer: document.getElementById('auth-container'),
-    mainContent: document.querySelector('main'),
     formDespesa: document.getElementById('formDespesa'),
     dataInput: document.getElementById('data'),
-    categoriaInput: document.getElementById('categoria'),
     btnSalvarDespesa: document.getElementById('btnSalvar'),
     btnCancelarDespesa: document.getElementById('btnCancelar'),
+    tipoInput: document.getElementById('tipo'),
+    categoriaInput: document.getElementById('categoria'),
+    descricaoInput: document.getElementById('descricao'),
+    valorInput: document.getElementById('valor'),
     tabelaDespesasBody: document.getElementById('tabelaDespesas').querySelector('tbody'),
     tabelaHeaders: document.querySelectorAll('#tabelaDespesas th.sortable'),
     listaPessoasContainer: document.getElementById('listaPessoas'),
     btnAdicionarPessoa: document.getElementById('btnAdicionarPessoa'),
     modalPessoa: document.getElementById('modalPessoa'),
+    modalPessoaTitulo: document.getElementById('modalPessoaTitulo'),
     formPessoa: document.getElementById('formPessoa'),
     btnCancelarPessoa: document.getElementById('btnCancelarPessoa'),
     confirmModal: document.getElementById('customConfirmModal'),
     confirmModalMessage: document.getElementById('confirmModalMessage'),
     confirmModalBtnConfirm: document.getElementById('confirmModalBtnConfirm'),
     confirmModalBtnCancel: document.getElementById('confirmModalBtnCancel'),
-    modalFechamento: document.getElementById('modalFechamento'),
-    fechamentoMensagem: document.getElementById('fechamentoMensagem'),
-    btnFechamentoSim: document.getElementById('btnFechamentoSim'),
-    btnFechamentoNao: document.getElementById('btnFechamentoNao'),
     totalDespesasSpan: document.getElementById('totalDespesas'),
     valorDisponivelSpan: document.getElementById('valorDisponivel'),
     exibeSalarioSpan: document.getElementById('exibeSalario'),
+    percentualComprometidoSpan: document.getElementById('percentualComprometido'),
     barraCompromisso: document.getElementById('barraCompromisso'),
     statusMensagem: document.getElementById('statusMensagem'),
     statusOrcamentoDiv: document.querySelector('.status-orcamento'),
     resumoPorPessoaContainer: document.getElementById('resumoPorPessoa'),
     mesAtualLabel: document.getElementById('mesAtualLabel'),
     btnMesAnterior: document.getElementById('btnMesAnterior'),
-    btnMesAtual: document.getElementById('btnMesAtual'),
     btnProximoMes: document.getElementById('btnProximoMes'),
+    btnMesAtual: document.getElementById('btnMesAtual'),
     emailPreferencialInput: document.getElementById('emailPreferencial'),
     btnSalvarEmail: document.getElementById('btnSalvarEmail'),
     btnEnviarResumo: document.getElementById('btnEnviarResumo'),
+    modalFechamento: document.getElementById('modalFechamento'),
+    fechamentoMensagem: document.getElementById('fechamentoMensagem'),
+    btnFechamentoSim: document.getElementById('btnFechamentoSim'),
+    btnFechamentoNao: document.getElementById('btnFechamentoNao'),
     toast: document.getElementById('toast')
 };
 
 // --- FUNÇÕES AUXILIARES ---
-const formatCurrency = (value = 0) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-const formatDate = (dateString) => new Date(dateString).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-const toggleModal = (modalElement, show) => modalElement?.classList.toggle('active', show);
-const getMonthKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-const parseMonthKey = (monthKey) => {
-    const [year, month] = monthKey.split('-').map(Number);
-    return new Date(year, month - 1, 1);
-};
-const getPreviousMonthKey = (monthKey = getMonthKey(new Date())) => {
-    const date = parseMonthKey(monthKey);
-    date.setMonth(date.getMonth() - 1);
-    return getMonthKey(date);
-};
-const getMonthName = (monthKey) => parseMonthKey(monthKey).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-const addMonths = (monthKey, quantity) => {
-    const date = parseMonthKey(monthKey);
-    date.setMonth(date.getMonth() + quantity);
-    return getMonthKey(date);
-};
-const escapeHtml = (value = '') => String(value).replace(/[&<>'"]/g, (char) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-}[char]));
+function formatCurrency(value) {
+    const numericValue = Number.isFinite(value) ? value : 0;
+    return numericValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
 
-const showToast = (message, type = 'info') => {
-    if (!DOMElements.toast) return;
+function formatPercent(value) {
+    const numericValue = Number.isFinite(value) ? value : 0;
+    return `${numericValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function getMonthKey(date) {
+    const d = date instanceof Date ? date : new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+}
+
+function getMonthFromDateString(dateString) {
+    if (!dateString) return '';
+    return getMonthKey(new Date(dateString));
+}
+
+function getMonthName(monthKey) {
+    const [year, month] = monthKey.split('-').map(Number);
+    return new Date(year, month - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+}
+
+function shiftMonth(monthKey, amount) {
+    const [year, month] = monthKey.split('-').map(Number);
+    return getMonthKey(new Date(year, month - 1 + amount, 1));
+}
+
+function getPreviousMonthKey(monthKey) {
+    return shiftMonth(monthKey, -1);
+}
+
+function toggleModal(modalElement, show) {
+    modalElement.classList.toggle('active', show);
+}
+
+function showToast(message, type = 'info') {
     DOMElements.toast.textContent = message;
     DOMElements.toast.className = `toast show ${type}`;
-    setTimeout(() => DOMElements.toast.classList.remove('show'), 3500);
-};
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => DOMElements.toast.classList.remove('show'), 3500);
+}
 
-const showConfirmModal = (message, callback) => {
+function showConfirmModal(message, callback) {
     DOMElements.confirmModalMessage.textContent = message;
     confirmCallback = callback;
     toggleModal(DOMElements.confirmModal, true);
-};
+}
 
-const hideConfirmModal = () => {
+function hideConfirmModal() {
     toggleModal(DOMElements.confirmModal, false);
     confirmCallback = null;
-};
+}
 
-const getSettingsDocRef = () => doc(db, 'users', currentUserId, 'configuracoes', 'perfil');
+function getUserSettingsKey() {
+    return `divisaoCasa:settings:${currentUserId}`;
+}
+
+function salvarConfiguracoesLocais() {
+    if (!currentUserId) return;
+    localStorage.setItem(getUserSettingsKey(), JSON.stringify(userSettings));
+}
+
+function carregarConfiguracoesLocais() {
+    if (!currentUserId) return null;
+    const raw = localStorage.getItem(getUserSettingsKey());
+    if (!raw) return null;
+
+    try {
+        return JSON.parse(raw);
+    } catch (error) {
+        console.error('Erro ao ler configurações locais:', error);
+        return null;
+    }
+}
+
+function atualizarLabelMes() {
+    DOMElements.mesAtualLabel.textContent = getMonthName(currentMonth);
+}
+
+function preencherDataAtual(monthKey = currentMonth) {
+    const agora = new Date();
+    const hojeNoMesAtual = getMonthKey(agora) === monthKey;
+
+    let dataBase;
+    if (hojeNoMesAtual) {
+        dataBase = agora;
+    } else {
+        const [year, month] = monthKey.split('-').map(Number);
+        dataBase = new Date(year, month - 1, 1, 12, 0, 0);
+    }
+
+    dataBase.setMinutes(dataBase.getMinutes() - dataBase.getTimezoneOffset());
+    DOMElements.dataInput.value = dataBase.toISOString().slice(0, 16);
+}
 
 // --- AUTENTICAÇÃO ---
-const updateAuthUI = (user) => {
+function updateAuthUI(user) {
     DOMElements.authContainer.innerHTML = '';
 
     if (user) {
@@ -139,9 +206,9 @@ const updateAuthUI = (user) => {
         currentUserEmail = user.email || '';
         DOMElements.mainContent.classList.remove('bloqueado');
 
-        const userDisplay = document.createElement('span');
+        const userDisplay = document.createElement('div');
         userDisplay.className = 'user-display';
-        userDisplay.textContent = `Olá, ${user.displayName || user.email?.split('@')[0] || 'usuário'}`;
+        userDisplay.innerHTML = `<span>Conectado</span><strong>${user.displayName || user.email?.split('@')[0] || 'Usuário'}</strong>`;
 
         const logoutButton = document.createElement('button');
         logoutButton.className = 'btn-logout';
@@ -166,50 +233,47 @@ const updateAuthUI = (user) => {
                 showToast('Não foi possível entrar com Google. Tente novamente.', 'error');
             }
         };
+
         DOMElements.authContainer.appendChild(loginButton);
         clearUserData();
     }
-};
+}
 
-const loadInitialData = async () => {
+async function loadInitialData() {
     if (!currentUserId) return;
-    preencherDataAtual(currentMonth);
+    preencherDataAtual();
     atualizarLabelMes();
+
     await carregarConfiguracoesUsuario();
     await carregarDadosFirestore();
     await verificarFechamentoMensal();
-};
+}
 
-const clearUserData = () => {
+function clearUserData() {
     pessoas = [];
     despesas = [];
     userSettings = { emailPreferencial: '', ultimoMesFechado: '' };
+    DOMElements.emailPreferencialInput.value = '';
     atualizarListaPessoas();
     atualizarTabela();
     atualizarAnaliseOrcamento();
     atualizarLabelMes();
-};
+}
 
 // --- CONFIGURAÇÕES DO USUÁRIO ---
-const carregarConfiguracoesUsuario = async () => {
-    userSettings = { emailPreferencial: currentUserEmail, ultimoMesFechado: '' };
+async function carregarConfiguracoesUsuario() {
+    const configuracoesSalvas = carregarConfiguracoesLocais();
 
-    try {
-        const snapshot = await getDoc(getSettingsDocRef());
-        if (snapshot.exists()) {
-            userSettings = { ...userSettings, ...snapshot.data() };
-        } else {
-            await setDoc(getSettingsDocRef(), userSettings, { merge: true });
-        }
-    } catch (error) {
-        console.warn('Não foi possível carregar/salvar configurações do perfil:', error);
-        showToast('Não consegui carregar as configurações do perfil, mas seus cadastros serão carregados.', 'info');
-    }
+    userSettings = {
+        emailPreferencial: currentUserEmail || '',
+        ultimoMesFechado: '',
+        ...(configuracoesSalvas || {})
+    };
 
     DOMElements.emailPreferencialInput.value = userSettings.emailPreferencial || currentUserEmail || '';
-};
+}
 
-const salvarEmailPreferencial = async () => {
+async function salvarEmailPreferencial() {
     const email = DOMElements.emailPreferencialInput.value.trim();
     if (!email || !email.includes('@')) {
         showToast('Informe um e-mail válido.', 'error');
@@ -217,18 +281,12 @@ const salvarEmailPreferencial = async () => {
     }
 
     userSettings.emailPreferencial = email;
-
-    try {
-        await setDoc(getSettingsDocRef(), { emailPreferencial: email }, { merge: true });
-        showToast('E-mail preferencial salvo.', 'success');
-    } catch (error) {
-        console.error('Erro ao salvar e-mail preferencial:', error);
-        showToast('Erro ao salvar e-mail. Verifique as regras do Firestore.', 'error');
-    }
-};
+    salvarConfiguracoesLocais();
+    showToast('E-mail preferencial salvo neste navegador.', 'success');
+}
 
 // --- FECHAMENTO MENSAL ---
-const verificarFechamentoMensal = async () => {
+async function verificarFechamentoMensal() {
     const mesAtual = getMonthKey(new Date());
     const mesAnterior = getPreviousMonthKey(mesAtual);
 
@@ -241,52 +299,72 @@ const verificarFechamentoMensal = async () => {
     DOMElements.btnFechamentoSim.dataset.mes = mesAnterior;
     DOMElements.btnFechamentoNao.dataset.mes = mesAnterior;
     toggleModal(DOMElements.modalFechamento, true);
-};
+}
 
-const confirmarFechamentoMensal = async () => {
+async function confirmarFechamentoMensal() {
     const mesFechado = DOMElements.btnFechamentoSim.dataset.mes;
-    userSettings.ultimoMesFechado = mesFechado;
-    await setDoc(getSettingsDocRef(), { ultimoMesFechado: mesFechado }, { merge: true });
-    toggleModal(DOMElements.modalFechamento, false);
+    if (!mesFechado) return;
 
-    const despesasMesFechado = await buscarDespesasPorMes(mesFechado);
-    abrirEmailResumo(mesFechado, despesasMesFechado);
-    showToast(`Mês ${getMonthName(mesFechado)} marcado como fechado.`, 'success');
-};
+    try {
+        userSettings.ultimoMesFechado = mesFechado;
+        salvarConfiguracoesLocais();
+        toggleModal(DOMElements.modalFechamento, false);
 
-const recusarFechamentoMensal = () => {
+        const despesasMesFechado = await buscarDespesasPorMes(mesFechado);
+        gerarRelatorioPdf(mesFechado, despesasMesFechado);
+        showToast(`Mês ${getMonthName(mesFechado)} marcado como fechado.`, 'success');
+    } catch (error) {
+        console.error('Erro ao fechar mês:', error);
+        showToast('Não foi possível marcar o mês como fechado.', 'error');
+    }
+}
+
+function recusarFechamentoMensal() {
     const mes = DOMElements.btnFechamentoNao.dataset.mes;
+    if (!mes) return;
+
     toggleModal(DOMElements.modalFechamento, false);
     currentMonth = mes;
     atualizarLabelMes();
-    carregarDespesasFirestore();
     preencherDataAtual(mes);
+    carregarDespesasFirestore();
     showToast(`Você voltou para ${getMonthName(mes)} para completar os cadastros.`, 'info');
-};
+}
 
 // --- PESSOAS ---
-const carregarPessoasFirestore = async () => {
-    const querySnapshot = await getDocs(collection(db, 'users', currentUserId, 'pessoas'));
-    pessoas = querySnapshot.docs.map((documento) => ({ id: documento.id, ...documento.data() }));
-    pessoas.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-    atualizarListaPessoas();
-    atualizarAnaliseOrcamento();
-};
+async function carregarPessoasFirestore() {
+    try {
+        const querySnapshot = await getDocs(collection(db, 'users', currentUserId, 'pessoas'));
+        pessoas = querySnapshot.docs
+            .map(documento => ({ id: documento.id, ...documento.data() }))
+            .sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
 
-const atualizarListaPessoas = () => {
+        atualizarListaPessoas();
+    } catch (error) {
+        console.error('Erro ao carregar pessoas:', error);
+        showToast('Não foi possível carregar as pessoas cadastradas.', 'error');
+    }
+}
+
+function atualizarListaPessoas() {
     DOMElements.listaPessoasContainer.innerHTML = '';
+
     if (pessoas.length === 0) {
-        DOMElements.listaPessoasContainer.innerHTML = '<p class="empty-state">Nenhuma pessoa cadastrada ainda.</p>';
+        DOMElements.listaPessoasContainer.innerHTML = '<p class="empty-state">Cadastre as pessoas e suas rendas para calcular o rateio.</p>';
         return;
     }
 
-    pessoas.forEach((pessoa) => {
+    const totalSalarios = pessoas.reduce((acc, pessoa) => acc + Number(pessoa.salario || 0), 0);
+
+    pessoas.forEach(pessoa => {
+        const participacao = totalSalarios > 0 ? (Number(pessoa.salario || 0) / totalSalarios) * 100 : 0;
         const card = document.createElement('div');
         card.className = 'pessoa-card';
         card.innerHTML = `
             <div class="pessoa-info">
-                <p class="pessoa-nome">${escapeHtml(pessoa.nome)}</p>
-                <p class="pessoa-salario">${formatCurrency(pessoa.salario)}</p>
+                <p class="pessoa-nome">${pessoa.nome}</p>
+                <p class="pessoa-salario">${formatCurrency(Number(pessoa.salario || 0))}</p>
+                <span class="pill">${formatPercent(participacao)} da renda</span>
             </div>
             <div class="pessoa-acoes">
                 <button class="btn-acao editar" data-id="${pessoa.id}">Editar</button>
@@ -295,109 +373,119 @@ const atualizarListaPessoas = () => {
         `;
         DOMElements.listaPessoasContainer.appendChild(card);
     });
-};
+}
 
-const handlePessoaFormSubmit = async (event) => {
+async function handlePessoaFormSubmit(event) {
     event.preventDefault();
-    if (!currentUserId) return;
-
     const nome = DOMElements.formPessoa.nomePessoa.value.trim();
     const salario = parseFloat(DOMElements.formPessoa.salarioPessoa.value);
 
-    if (!nome || Number.isNaN(salario) || salario < 0) {
-        showToast('Preencha nome e salário corretamente.', 'error');
+    if (!nome || !Number.isFinite(salario) || salario < 0) {
+        showToast('Informe nome e renda válidos.', 'error');
         return;
     }
 
-    const dadosPessoa = { nome, salario };
-
     try {
         if (pessoaEmEdicaoId) {
-            await updateDoc(doc(db, 'users', currentUserId, 'pessoas', pessoaEmEdicaoId), dadosPessoa);
-            showToast('Pessoa atualizada.', 'success');
+            await updateDoc(doc(db, 'users', currentUserId, 'pessoas', pessoaEmEdicaoId), { nome, salario });
         } else {
-            await addDoc(collection(db, 'users', currentUserId, 'pessoas'), dadosPessoa);
-            showToast('Pessoa adicionada.', 'success');
+            await addDoc(collection(db, 'users', currentUserId, 'pessoas'), { nome, salario });
         }
 
-        pessoaEmEdicaoId = null;
         toggleModal(DOMElements.modalPessoa, false);
-        DOMElements.formPessoa.reset();
-        DOMElements.modalPessoa.querySelector('h3').textContent = 'Adicionar Pessoa';
+        resetarFormularioPessoa();
         await carregarPessoasFirestore();
+        atualizarAnaliseOrcamento();
+        showToast('Pessoa salva com sucesso.', 'success');
     } catch (error) {
         console.error('Erro ao salvar pessoa:', error);
-        showToast('Erro ao salvar pessoa. Verifique as regras do Firestore.', 'error');
+        showToast('Não foi possível salvar a pessoa.', 'error');
     }
-};
+}
 
-const handlePessoaActions = (event) => {
+function resetarFormularioPessoa() {
+    pessoaEmEdicaoId = null;
+    DOMElements.modalPessoaTitulo.textContent = 'Adicionar pessoa';
+    DOMElements.formPessoa.reset();
+}
+
+function handlePessoaActions(event) {
     const target = event.target;
     const id = target.dataset.id;
     if (!id) return;
 
     if (target.classList.contains('editar')) {
-        const pessoa = pessoas.find((p) => p.id === id);
+        const pessoa = pessoas.find(p => p.id === id);
         if (!pessoa) return;
+
         pessoaEmEdicaoId = id;
+        DOMElements.modalPessoaTitulo.textContent = 'Editar pessoa';
         DOMElements.formPessoa.nomePessoa.value = pessoa.nome;
         DOMElements.formPessoa.salarioPessoa.value = pessoa.salario;
-        DOMElements.modalPessoa.querySelector('h3').textContent = 'Editar Pessoa';
         toggleModal(DOMElements.modalPessoa, true);
     } else if (target.classList.contains('excluir')) {
-        const pessoa = pessoas.find((p) => p.id === id);
-        showConfirmModal(`Tem certeza que deseja excluir ${pessoa?.nome || 'esta pessoa'}?`, async (confirmed) => {
-            if (confirmed) {
+        const pessoa = pessoas.find(p => p.id === id);
+        showConfirmModal(`Excluir ${pessoa?.nome || 'esta pessoa'}?`, async (confirmed) => {
+            if (!confirmed) return;
+            try {
                 await deleteDoc(doc(db, 'users', currentUserId, 'pessoas', id));
                 await carregarPessoasFirestore();
+                atualizarAnaliseOrcamento();
                 showToast('Pessoa excluída.', 'success');
+            } catch (error) {
+                console.error('Erro ao excluir pessoa:', error);
+                showToast('Não foi possível excluir a pessoa.', 'error');
             }
         });
     }
-};
+}
 
 // --- DESPESAS ---
-const normalizarDespesaLegada = async (despesa) => {
-    if (despesa.mesReferencia || !despesa.data || !currentUserId) return despesa;
-
-    const mesReferencia = getMonthKey(new Date(despesa.data));
-    const despesaAtualizada = { ...despesa, mesReferencia };
-
+async function carregarDespesasFirestore() {
     try {
-        await updateDoc(doc(db, 'users', currentUserId, 'despesas', despesa.id), { mesReferencia });
+        const todas = await buscarTodasDespesas();
+        const despesasDoMes = [];
+
+        for (const despesa of todas) {
+            const mesDaDespesa = despesa.mesReferencia || getMonthFromDateString(despesa.data);
+
+            if (!despesa.mesReferencia && mesDaDespesa) {
+                updateDoc(doc(db, 'users', currentUserId, 'despesas', despesa.id), { mesReferencia: mesDaDespesa }).catch(() => {});
+            }
+
+            if (mesDaDespesa === currentMonth) {
+                despesasDoMes.push({ ...despesa, mesReferencia: mesDaDespesa });
+            }
+        }
+
+        despesas = despesasDoMes;
+        atualizarTabela();
     } catch (error) {
-        console.warn('Não foi possível atualizar despesa antiga com mesReferencia:', error);
+        console.error('Erro ao carregar despesas:', error);
+        showToast('Não foi possível carregar as despesas.', 'error');
     }
+}
 
-    return despesaAtualizada;
-};
-
-const despesaPertenceAoMes = (despesa, monthKey) => {
-    if (despesa.mesReferencia) return despesa.mesReferencia === monthKey;
-    if (!despesa.data) return false;
-    return getMonthKey(new Date(despesa.data)) === monthKey;
-};
-
-const buscarDespesasPorMes = async (monthKey) => {
+async function buscarTodasDespesas() {
     const querySnapshot = await getDocs(collection(db, 'users', currentUserId, 'despesas'));
-    const todasDespesas = await Promise.all(
-        querySnapshot.docs.map((documento) => normalizarDespesaLegada({ id: documento.id, ...documento.data() }))
-    );
+    return querySnapshot.docs.map(documento => ({ id: documento.id, ...documento.data() }));
+}
 
-    return todasDespesas.filter((despesa) => despesaPertenceAoMes(despesa, monthKey));
-};
+async function buscarDespesasPorMes(monthKey) {
+    const todas = await buscarTodasDespesas();
+    return todas.filter(despesa => (despesa.mesReferencia || getMonthFromDateString(despesa.data)) === monthKey);
+}
 
-const carregarDespesasFirestore = async () => {
-    despesas = await buscarDespesasPorMes(currentMonth);
-    atualizarTabela();
-    atualizarAnaliseOrcamento();
-};
-
-const atualizarTabela = () => {
+function atualizarTabela() {
     DOMElements.tabelaDespesasBody.innerHTML = '';
 
     if (despesas.length === 0) {
-        DOMElements.tabelaDespesasBody.innerHTML = '<tr><td colspan="5" class="empty-state tabela-vazia">Nenhuma despesa cadastrada neste mês.</td></tr>';
+        DOMElements.tabelaDespesasBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-table">Nenhuma despesa cadastrada para este mês.</td>
+            </tr>
+        `;
+        atualizarIndicadoresOrdenacao();
         return;
     }
 
@@ -411,14 +499,14 @@ const atualizarTabela = () => {
         return 0;
     });
 
-    despesasOrdenadas.forEach((despesa) => {
-        const categoriaTexto = despesa.categoria ? ` • ${escapeHtml(despesa.categoria)}` : '';
+    despesasOrdenadas.forEach(despesa => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td data-label="Data">${formatDate(despesa.data)}</td>
-            <td data-label="Tipo">${escapeHtml(despesa.tipo)}${categoriaTexto}</td>
-            <td data-label="Descrição">${escapeHtml(despesa.descricao)}</td>
-            <td data-label="Valor">${formatCurrency(despesa.valor)}</td>
+            <td data-label="Tipo">${despesa.tipo || '-'}</td>
+            <td data-label="Categoria">${despesa.categoria || '-'}</td>
+            <td data-label="Descrição">${despesa.descricao || '-'}</td>
+            <td data-label="Valor">${formatCurrency(Number(despesa.valor || 0))}</td>
             <td data-label="Ações">
                 <button class="btn-acao editar" data-id="${despesa.id}">Editar</button>
                 <button class="btn-acao excluir" data-id="${despesa.id}">Excluir</button>
@@ -426,157 +514,125 @@ const atualizarTabela = () => {
         `;
         DOMElements.tabelaDespesasBody.appendChild(tr);
     });
-    atualizarIndicadoresOrdenacao();
-};
 
-const handleDespesaFormSubmit = async (event) => {
+    atualizarIndicadoresOrdenacao();
+}
+
+async function handleDespesaFormSubmit(event) {
     event.preventDefault();
-    if (!currentUserId) return;
 
     const data = DOMElements.dataInput.value;
-    const valor = parseFloat(DOMElements.formDespesa.valor.value);
+    const valor = parseFloat(DOMElements.valorInput.value);
 
-    if (!data || !DOMElements.formDespesa.descricao.value.trim() || Number.isNaN(valor) || valor <= 0) {
-        showToast('Preencha data, descrição e valor corretamente.', 'error');
+    if (!data || !Number.isFinite(valor) || valor < 0) {
+        showToast('Informe data e valor válidos.', 'error');
         return;
     }
 
     const despesa = {
         data,
-        tipo: DOMElements.formDespesa.tipo.value,
+        mesReferencia: getMonthFromDateString(data),
+        tipo: DOMElements.tipoInput.value,
         categoria: DOMElements.categoriaInput.value.trim(),
-        descricao: DOMElements.formDespesa.descricao.value.trim(),
-        valor,
-        mesReferencia: getMonthKey(new Date(data))
+        descricao: DOMElements.descricaoInput.value.trim(),
+        valor
     };
+
+    if (!despesa.descricao) {
+        showToast('Informe a descrição da despesa.', 'error');
+        return;
+    }
 
     try {
         if (despesaEmEdicaoId) {
             await updateDoc(doc(db, 'users', currentUserId, 'despesas', despesaEmEdicaoId), despesa);
-            showToast('Despesa atualizada.', 'success');
         } else {
             await addDoc(collection(db, 'users', currentUserId, 'despesas'), despesa);
-            showToast('Despesa adicionada.', 'success');
         }
+
         currentMonth = despesa.mesReferencia;
         atualizarLabelMes();
         resetarFormularioDespesa();
         await carregarDespesasFirestore();
+        atualizarAnaliseOrcamento();
+        showToast('Despesa salva com sucesso.', 'success');
     } catch (error) {
         console.error('Erro ao salvar despesa:', error);
-        showToast('Erro ao salvar despesa. Verifique as regras do Firestore.', 'error');
+        showToast('Não foi possível salvar a despesa.', 'error');
     }
-};
+}
 
-const handleDespesaActions = (event) => {
+function handleDespesaActions(event) {
     const target = event.target;
     const id = target.dataset.id;
     if (!id) return;
 
     if (target.classList.contains('editar')) {
-        const despesa = despesas.find((d) => d.id === id);
+        const despesa = despesas.find(d => d.id === id);
         if (!despesa) return;
+
         DOMElements.dataInput.value = despesa.data;
-        DOMElements.formDespesa.tipo.value = despesa.tipo;
+        DOMElements.tipoInput.value = despesa.tipo || 'Fixa';
         DOMElements.categoriaInput.value = despesa.categoria || '';
-        DOMElements.formDespesa.descricao.value = despesa.descricao;
-        DOMElements.formDespesa.valor.value = despesa.valor;
+        DOMElements.descricaoInput.value = despesa.descricao || '';
+        DOMElements.valorInput.value = despesa.valor;
 
         despesaEmEdicaoId = id;
-        DOMElements.btnSalvarDespesa.textContent = 'Salvar Edição';
+        DOMElements.btnSalvarDespesa.textContent = 'Salvar edição';
         DOMElements.btnSalvarDespesa.classList.add('modo-edicao');
         DOMElements.btnCancelarDespesa.classList.remove('hidden');
+        DOMElements.formDespesa.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else if (target.classList.contains('excluir')) {
-        showConfirmModal('Tem certeza que deseja excluir esta despesa?', async (confirmed) => {
-            if (confirmed) {
+        showConfirmModal('Excluir esta despesa?', async (confirmed) => {
+            if (!confirmed) return;
+            try {
                 await deleteDoc(doc(db, 'users', currentUserId, 'despesas', id));
                 await carregarDespesasFirestore();
+                atualizarAnaliseOrcamento();
                 showToast('Despesa excluída.', 'success');
+            } catch (error) {
+                console.error('Erro ao excluir despesa:', error);
+                showToast('Não foi possível excluir a despesa.', 'error');
             }
         });
     }
-};
+}
 
-const resetarFormularioDespesa = () => {
+function resetarFormularioDespesa() {
     DOMElements.formDespesa.reset();
     preencherDataAtual(currentMonth);
     despesaEmEdicaoId = null;
-    DOMElements.btnSalvarDespesa.textContent = 'Adicionar Despesa';
+    DOMElements.btnSalvarDespesa.textContent = 'Adicionar despesa';
     DOMElements.btnSalvarDespesa.classList.remove('modo-edicao');
     DOMElements.btnCancelarDespesa.classList.add('hidden');
-};
+}
 
-const preencherDataAtual = (monthKey = getMonthKey(new Date())) => {
-    const agora = new Date();
-    const selectedMonth = parseMonthKey(monthKey);
-
-    if (getMonthKey(agora) === monthKey) {
-        agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset());
-        DOMElements.dataInput.value = agora.toISOString().slice(0, 16);
-        return;
-    }
-
-    selectedMonth.setHours(12, 0, 0, 0);
-    selectedMonth.setMinutes(selectedMonth.getMinutes() - selectedMonth.getTimezoneOffset());
-    DOMElements.dataInput.value = selectedMonth.toISOString().slice(0, 16);
-};
-
-// --- MÊS, ORDENAÇÃO E ANÁLISE ---
-const atualizarLabelMes = () => {
-    DOMElements.mesAtualLabel.textContent = getMonthName(currentMonth);
-};
-
-const trocarMes = async (quantity) => {
-    currentMonth = quantity === 0 ? getMonthKey(new Date()) : addMonths(currentMonth, quantity);
-    atualizarLabelMes();
-    preencherDataAtual(currentMonth);
-    await carregarDespesasFirestore();
-};
-
-const ordenarTabela = (coluna) => {
+// --- ORDENAÇÃO E ANÁLISE ---
+function ordenarTabela(coluna) {
     const novaOrdem = ordenacaoAtual.coluna === coluna && ordenacaoAtual.ordem === 'asc' ? 'desc' : 'asc';
     ordenacaoAtual = { coluna, ordem: novaOrdem };
     atualizarTabela();
-};
+}
 
-const atualizarIndicadoresOrdenacao = () => {
-    DOMElements.tabelaHeaders.forEach((th) => {
+function atualizarIndicadoresOrdenacao() {
+    DOMElements.tabelaHeaders.forEach(th => {
         th.classList.remove('asc', 'desc');
         if (th.dataset.coluna === ordenacaoAtual.coluna) {
             th.classList.add(ordenacaoAtual.ordem);
         }
     });
-};
+}
 
-const calcularResumoProporcional = (despesasBase = despesas) => {
-    const totalSalarios = pessoas.reduce((acc, p) => acc + Number(p.salario || 0), 0);
-    const totalDespesas = despesasBase.reduce((acc, d) => acc + Number(d.valor || 0), 0);
-
-    return pessoas.map((pessoa) => {
-        const salario = Number(pessoa.salario || 0);
-        const participacao = totalSalarios > 0 ? salario / totalSalarios : 0;
-        const despesaProporcional = totalDespesas * participacao;
-        const saldo = salario - despesaProporcional;
-
-        return {
-            ...pessoa,
-            salario,
-            participacao,
-            despesaProporcional,
-            saldo
-        };
-    });
-};
-
-const atualizarAnaliseOrcamento = () => {
-    const totalSalarios = pessoas.reduce((acc, p) => acc + Number(p.salario || 0), 0);
-    const totalDespesas = despesas.reduce((acc, d) => acc + Number(d.valor || 0), 0);
+function atualizarAnaliseOrcamento() {
+    const totalSalarios = pessoas.reduce((acc, pessoa) => acc + Number(pessoa.salario || 0), 0);
+    const totalDespesas = despesas.reduce((acc, despesa) => acc + Number(despesa.valor || 0), 0);
     const disponivel = totalSalarios - totalDespesas;
     const percentualComprometido = totalSalarios > 0 ? (totalDespesas / totalSalarios) * 100 : 0;
 
     DOMElements.totalDespesasSpan.textContent = formatCurrency(totalDespesas);
     DOMElements.valorDisponivelSpan.textContent = formatCurrency(disponivel);
     DOMElements.exibeSalarioSpan.textContent = formatCurrency(totalSalarios);
+    DOMElements.percentualComprometidoSpan.textContent = formatPercent(percentualComprometido);
     DOMElements.barraCompromisso.style.width = `${Math.min(percentualComprometido, 100)}%`;
 
     const { statusOrcamentoDiv, statusMensagem } = DOMElements;
@@ -585,122 +641,244 @@ const atualizarAnaliseOrcamento = () => {
     if (totalSalarios === 0) {
         statusMensagem.textContent = 'Adicione pessoas e salários para começar.';
     } else if (percentualComprometido <= 70) {
-        statusMensagem.textContent = 'Orçamento saudável! ✅';
+        statusMensagem.textContent = 'Orçamento em faixa confortável.';
         statusOrcamentoDiv.classList.add('status-bom');
     } else if (percentualComprometido <= 95) {
-        statusMensagem.textContent = 'Atenção! Orçamento apertado. ⚠️';
+        statusMensagem.textContent = 'Atenção: orçamento próximo do limite.';
         statusOrcamentoDiv.classList.add('status-atencao');
     } else {
-        statusMensagem.textContent = 'Perigo! Você gastou mais que o orçamento. ❌';
+        statusMensagem.textContent = 'Orçamento acima do recomendado para a renda cadastrada.';
         statusOrcamentoDiv.classList.add('status-perigo');
     }
 
-    atualizarResumoPorPessoa();
-};
+    atualizarResumoPorPessoa(totalDespesas, totalSalarios);
+    atualizarListaPessoas();
+}
 
-const atualizarResumoPorPessoa = () => {
+function atualizarResumoPorPessoa(totalDespesas, totalSalarios) {
     DOMElements.resumoPorPessoaContainer.innerHTML = '';
-    if (pessoas.length === 0) {
-        DOMElements.resumoPorPessoaContainer.innerHTML = '<p class="empty-state">Cadastre uma pessoa para ver o resumo proporcional.</p>';
+
+    if (pessoas.length === 0 || totalSalarios === 0) {
+        DOMElements.resumoPorPessoaContainer.innerHTML = '<p class="empty-state">O rateio aparece aqui após o cadastro das rendas.</p>';
         return;
     }
 
-    const totalSalarios = pessoas.reduce((acc, p) => acc + Number(p.salario || 0), 0);
-    const totalDespesas = despesas.reduce((acc, d) => acc + Number(d.valor || 0), 0);
+    pessoas.forEach(pessoa => {
+        const salario = Number(pessoa.salario || 0);
+        const proporcaoSalario = salario / totalSalarios;
+        const percentual = proporcaoSalario * 100;
+        const despesaProporcional = totalDespesas * proporcaoSalario;
+        const saldo = salario - despesaProporcional;
 
-    if (totalSalarios <= 0) {
-        DOMElements.resumoPorPessoaContainer.innerHTML = '<p class="empty-state">Informe pelo menos um salário maior que zero.</p>';
-        return;
-    }
-
-    calcularResumoProporcional().forEach((pessoa) => {
         const resumoDiv = document.createElement('div');
         resumoDiv.className = 'resumo-pessoa';
         resumoDiv.innerHTML = `
-            <p class="resumo-pessoa-nome">${escapeHtml(pessoa.nome)}</p>
+            <div class="resumo-header">
+                <p class="resumo-pessoa-nome">${pessoa.nome}</p>
+                <span class="pill">${formatPercent(percentual)}</span>
+            </div>
             <div class="resumo-pessoa-valores">
-                <p><span>Salário:</span> <span>${formatCurrency(pessoa.salario)}</span></p>
-                <p><span>Participação na renda:</span> <span>${(pessoa.participacao * 100).toFixed(2)}%</span></p>
-                <p><span>Parte das despesas:</span> <span>${formatCurrency(pessoa.despesaProporcional)}</span></p>
-                <p><strong>Saldo estimado:</strong> <strong>${formatCurrency(pessoa.saldo)}</strong></p>
+                <p><span>Renda</span> <strong>${formatCurrency(salario)}</strong></p>
+                <p><span>Parte das despesas</span> <strong>${formatCurrency(despesaProporcional)}</strong></p>
+                <p><span>Saldo estimado</span> <strong>${formatCurrency(saldo)}</strong></p>
             </div>
         `;
         DOMElements.resumoPorPessoaContainer.appendChild(resumoDiv);
     });
+}
 
-};
-
-const carregarDadosFirestore = async () => {
+async function carregarDadosFirestore() {
     if (!currentUserId) return;
-    await carregarPessoasFirestore();
-    await carregarDespesasFirestore();
-};
+    await Promise.all([carregarPessoasFirestore(), carregarDespesasFirestore()]);
+    atualizarAnaliseOrcamento();
+}
 
 // --- RESUMO POR E-MAIL ---
-const gerarResumoMensal = (monthKey, despesasBase = despesas) => {
+function montarResumoTexto(monthKey, despesasBase = despesas) {
     const totalSalarios = pessoas.reduce((acc, pessoa) => acc + Number(pessoa.salario || 0), 0);
     const totalDespesas = despesasBase.reduce((acc, despesa) => acc + Number(despesa.valor || 0), 0);
-    const linhas = [
-        `Resumo financeiro de ${getMonthName(monthKey)}`,
-        '',
-        `Total familiar: ${formatCurrency(totalSalarios)}`,
-        `Total de despesas: ${formatCurrency(totalDespesas)}`,
-        `Saldo familiar estimado: ${formatCurrency(totalSalarios - totalDespesas)}`,
-        '',
-        'Rateio proporcional por renda:',
-        ''
-    ];
+    const disponivel = totalSalarios - totalDespesas;
 
-    calcularResumoProporcional(despesasBase).forEach((pessoa) => {
-        linhas.push(`${pessoa.nome}:`);
-        linhas.push(`- Salário: ${formatCurrency(pessoa.salario)}`);
-        linhas.push(`- Participação na renda: ${(pessoa.participacao * 100).toFixed(2)}%`);
-        linhas.push(`- Parte proporcional das despesas: ${formatCurrency(pessoa.despesaProporcional)}`);
-        linhas.push(`- Saldo estimado: ${formatCurrency(pessoa.saldo)}`);
-        linhas.push('');
+    const linhasPessoas = pessoas.map(pessoa => {
+        const salario = Number(pessoa.salario || 0);
+        const proporcao = totalSalarios > 0 ? salario / totalSalarios : 0;
+        return `${pessoa.nome}: renda ${formatCurrency(salario)} | participação ${formatPercent(proporcao * 100)} | parte das despesas ${formatCurrency(totalDespesas * proporcao)} | saldo estimado ${formatCurrency(salario - (totalDespesas * proporcao))}`;
     });
 
-    linhas.push('Despesas cadastradas:');
-    if (despesasBase.length === 0) {
-        linhas.push('- Nenhuma despesa cadastrada neste mês.');
-    } else {
-        despesasBase
-            .sort((a, b) => String(a.data).localeCompare(String(b.data)))
-            .forEach((despesa) => {
-                linhas.push(`- ${formatDate(despesa.data)} | ${despesa.tipo} | ${despesa.categoria || 'Sem categoria'} | ${despesa.descricao} | ${formatCurrency(despesa.valor)}`);
-            });
-    }
+    const linhasDespesas = despesasBase
+        .sort((a, b) => String(a.data).localeCompare(String(b.data)))
+        .map(despesa => `- ${formatDate(despesa.data)} | ${despesa.categoria || despesa.tipo || 'Sem categoria'} | ${despesa.descricao || '-'} | ${formatCurrency(Number(despesa.valor || 0))}`);
 
-    return linhas.join('\n');
-};
+    return [
+        `Resumo financeiro - ${getMonthName(monthKey)}`,
+        '',
+        `Renda total: ${formatCurrency(totalSalarios)}`,
+        `Despesas totais: ${formatCurrency(totalDespesas)}`,
+        `Saldo disponível: ${formatCurrency(disponivel)}`,
+        '',
+        'Rateio proporcional:',
+        ...(linhasPessoas.length ? linhasPessoas : ['Nenhuma pessoa cadastrada.']),
+        '',
+        'Lançamentos:',
+        ...(linhasDespesas.length ? linhasDespesas : ['Nenhuma despesa cadastrada.'])
+    ].join('\n');
+}
 
-const abrirEmailResumo = (monthKey = currentMonth, despesasBase = despesas) => {
-    const email = userSettings.emailPreferencial || currentUserEmail;
-    if (!email) {
-        showToast('Cadastre um e-mail preferencial antes de enviar.', 'error');
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('\"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+function montarRelatorioHtml(monthKey = currentMonth, despesasBase = despesas) {
+    const totalSalarios = pessoas.reduce((acc, pessoa) => acc + Number(pessoa.salario || 0), 0);
+    const totalDespesas = despesasBase.reduce((acc, despesa) => acc + Number(despesa.valor || 0), 0);
+    const disponivel = totalSalarios - totalDespesas;
+    const email = (DOMElements.emailPreferencialInput.value || currentUserEmail || '').trim();
+
+    const linhasPessoas = pessoas.map(pessoa => {
+        const salario = Number(pessoa.salario || 0);
+        const proporcao = totalSalarios > 0 ? salario / totalSalarios : 0;
+        const parte = totalDespesas * proporcao;
+        const saldo = salario - parte;
+
+        return `
+            <tr>
+                <td>${escapeHtml(pessoa.nome)}</td>
+                <td>${formatCurrency(salario)}</td>
+                <td>${formatPercent(proporcao * 100)}</td>
+                <td>${formatCurrency(parte)}</td>
+                <td>${formatCurrency(saldo)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    const linhasDespesas = [...despesasBase]
+        .sort((a, b) => String(a.data).localeCompare(String(b.data)))
+        .map(despesa => `
+            <tr>
+                <td>${formatDate(despesa.data)}</td>
+                <td>${escapeHtml(despesa.tipo || '-')}</td>
+                <td>${escapeHtml(despesa.categoria || '-')}</td>
+                <td>${escapeHtml(despesa.descricao || '-')}</td>
+                <td>${formatCurrency(Number(despesa.valor || 0))}</td>
+            </tr>
+        `).join('');
+
+    return `<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Resumo financeiro - ${escapeHtml(getMonthName(monthKey))}</title>
+<style>
+    @page { size: A4; margin: 16mm; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; color: #1f2933; margin: 0; background: #fff; }
+    .toolbar { position: sticky; top: 0; background: #0f766e; color: #fff; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .toolbar button { background: #fff; color: #0f766e; border: 0; border-radius: 8px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
+    main { padding: 28px; }
+    h1 { margin: 0 0 4px; font-size: 26px; }
+    h2 { margin: 28px 0 10px; font-size: 18px; color: #0f766e; }
+    .muted { color: #667085; margin: 0 0 20px; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 22px 0; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; background: #f8fafc; }
+    .card span { display: block; color: #667085; font-size: 12px; margin-bottom: 6px; }
+    .card strong { font-size: 18px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+    th, td { border-bottom: 1px solid #e5e7eb; text-align: left; padding: 8px; vertical-align: top; }
+    th { background: #f1f5f9; color: #334155; }
+    td:last-child, th:last-child { text-align: right; }
+    .assinatura { margin-top: 28px; color: #667085; font-size: 12px; }
+    @media print { .toolbar { display: none; } main { padding: 0; } body { background: #fff; } }
+</style>
+</head>
+<body>
+<div class="toolbar">
+    <span>Relatório pronto. Na janela de impressão, escolha "Salvar como PDF".</span>
+    <button onclick="window.print()">Imprimir / Salvar PDF</button>
+</div>
+<main>
+    <h1>Resumo financeiro - ${escapeHtml(getMonthName(monthKey))}</h1>
+    <p class="muted">Divisão proporcional de despesas pela renda familiar${email ? ` - ${escapeHtml(email)}` : ''}</p>
+
+    <section class="cards">
+        <div class="card"><span>Renda total</span><strong>${formatCurrency(totalSalarios)}</strong></div>
+        <div class="card"><span>Despesas totais</span><strong>${formatCurrency(totalDespesas)}</strong></div>
+        <div class="card"><span>Saldo disponível</span><strong>${formatCurrency(disponivel)}</strong></div>
+    </section>
+
+    <h2>Divisão proporcional</h2>
+    <table>
+        <thead><tr><th>Pessoa</th><th>Renda</th><th>Participação</th><th>Parte das despesas</th><th>Saldo estimado</th></tr></thead>
+        <tbody>${linhasPessoas || '<tr><td colspan="5">Nenhuma pessoa cadastrada.</td></tr>'}</tbody>
+    </table>
+
+    <h2>Lançamentos do mês</h2>
+    <table>
+        <thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th></tr></thead>
+        <tbody>${linhasDespesas || '<tr><td colspan="5">Nenhuma despesa cadastrada.</td></tr>'}</tbody>
+    </table>
+
+    <p class="assinatura">Gerado pelo Divisão da Casa em ${new Date().toLocaleString('pt-BR')}.</p>
+</main>
+<script>setTimeout(() => window.print(), 600);</script>
+</body>
+</html>`;
+}
+
+function gerarRelatorioPdf(monthKey = currentMonth, despesasBase = despesas) {
+    const email = (DOMElements.emailPreferencialInput.value || currentUserEmail || '').trim();
+    if (!email || !email.includes('@')) {
+        showToast('Informe e salve um e-mail válido antes de gerar o relatório.', 'error');
         return;
     }
 
-    const subject = `Resumo financeiro - ${getMonthName(monthKey)}`;
-    const body = gerarResumoMensal(monthKey, despesasBase);
-    const mailto = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailto;
-};
+    const reportWindow = window.open('', '_blank');
+    if (!reportWindow) {
+        showToast('Permita pop-ups para gerar o relatório em PDF.', 'error');
+        return;
+    }
 
-// --- EVENT LISTENERS ---
-const initializeEventListeners = () => {
+    reportWindow.document.open();
+    reportWindow.document.write(montarRelatorioHtml(monthKey, despesasBase));
+    reportWindow.document.close();
+    showToast('Relatório aberto. Escolha salvar como PDF na tela de impressão.', 'success');
+}
+
+// --- NAVEGAÇÃO DE MÊS ---
+function mudarMes(amount) {
+    currentMonth = shiftMonth(currentMonth, amount);
+    atualizarLabelMes();
+    preencherDataAtual(currentMonth);
+    carregarDespesasFirestore().then(atualizarAnaliseOrcamento);
+}
+
+function voltarMesAtual() {
+    currentMonth = getMonthKey(new Date());
+    atualizarLabelMes();
+    preencherDataAtual(currentMonth);
+    carregarDespesasFirestore().then(atualizarAnaliseOrcamento);
+}
+
+// --- INICIALIZAÇÃO E EVENT LISTENERS ---
+function initializeEventListeners() {
     DOMElements.formDespesa.addEventListener('submit', handleDespesaFormSubmit);
     DOMElements.btnCancelarDespesa.addEventListener('click', resetarFormularioDespesa);
 
     DOMElements.btnAdicionarPessoa.addEventListener('click', () => {
-        pessoaEmEdicaoId = null;
-        DOMElements.formPessoa.reset();
-        DOMElements.modalPessoa.querySelector('h3').textContent = 'Adicionar Pessoa';
+        resetarFormularioPessoa();
         toggleModal(DOMElements.modalPessoa, true);
     });
-    DOMElements.btnCancelarPessoa.addEventListener('click', () => toggleModal(DOMElements.modalPessoa, false));
-    DOMElements.formPessoa.addEventListener('submit', handlePessoaFormSubmit);
 
+    DOMElements.btnCancelarPessoa.addEventListener('click', () => {
+        resetarFormularioPessoa();
+        toggleModal(DOMElements.modalPessoa, false);
+    });
+
+    DOMElements.formPessoa.addEventListener('submit', handlePessoaFormSubmit);
     DOMElements.listaPessoasContainer.addEventListener('click', handlePessoaActions);
     DOMElements.tabelaDespesasBody.addEventListener('click', handleDespesaActions);
 
@@ -708,22 +886,25 @@ const initializeEventListeners = () => {
         if (confirmCallback) confirmCallback(true);
         hideConfirmModal();
     });
+
     DOMElements.confirmModalBtnCancel.addEventListener('click', () => {
         if (confirmCallback) confirmCallback(false);
         hideConfirmModal();
     });
 
-    DOMElements.tabelaHeaders.forEach((th) => th.addEventListener('click', () => ordenarTabela(th.dataset.coluna)));
+    DOMElements.tabelaHeaders.forEach(th => {
+        th.addEventListener('click', () => ordenarTabela(th.dataset.coluna));
+    });
 
-    DOMElements.btnMesAnterior.addEventListener('click', () => trocarMes(-1));
-    DOMElements.btnMesAtual.addEventListener('click', () => trocarMes(0));
-    DOMElements.btnProximoMes.addEventListener('click', () => trocarMes(1));
+    DOMElements.btnMesAnterior.addEventListener('click', () => mudarMes(-1));
+    DOMElements.btnProximoMes.addEventListener('click', () => mudarMes(1));
+    DOMElements.btnMesAtual.addEventListener('click', voltarMesAtual);
     DOMElements.btnSalvarEmail.addEventListener('click', salvarEmailPreferencial);
-    DOMElements.btnEnviarResumo.addEventListener('click', () => abrirEmailResumo(currentMonth, despesas));
+    DOMElements.btnEnviarResumo.addEventListener('click', () => gerarRelatorioPdf(currentMonth, despesas));
     DOMElements.btnFechamentoSim.addEventListener('click', confirmarFechamentoMensal);
     DOMElements.btnFechamentoNao.addEventListener('click', recusarFechamentoMensal);
 
     onAuthStateChanged(auth, updateAuthUI);
-};
+}
 
 document.addEventListener('DOMContentLoaded', initializeEventListeners);
