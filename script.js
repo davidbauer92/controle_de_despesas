@@ -4,6 +4,8 @@ import {
     collection,
     addDoc,
     getDocs,
+    query,
+    where,
     doc,
     getDoc,
     updateDoc,
@@ -44,6 +46,12 @@ let currentUserEmail = '';
 let currentMonth = getMonthKey(new Date());
 let userSettings = { emailPreferencial: '', ultimoMesFechado: '' };
 let confirmCallback = null;
+let despesasLegadasVerificadas = false;
+let despesasLoadToken = 0;
+
+const currencyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const percentFormatter = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
 // --- SELETORES DO DOM ---
 const DOMElements = {
@@ -94,17 +102,17 @@ const DOMElements = {
 // --- FUNÇÕES AUXILIARES ---
 function formatCurrency(value) {
     const numericValue = Number.isFinite(value) ? value : 0;
-    return numericValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return currencyFormatter.format(numericValue);
 }
 
 function formatPercent(value) {
     const numericValue = Number.isFinite(value) ? value : 0;
-    return `${numericValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+    return `${percentFormatter.format(numericValue)}%`;
 }
 
 function formatDate(dateString) {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    return dateTimeFormatter.format(new Date(dateString));
 }
 
 function getMonthKey(date) {
@@ -204,6 +212,7 @@ function updateAuthUI(user) {
     if (user) {
         currentUserId = user.uid;
         currentUserEmail = user.email || '';
+        despesasLegadasVerificadas = false;
         DOMElements.mainContent.classList.remove('bloqueado');
 
         const userDisplay = document.createElement('div');
@@ -220,6 +229,7 @@ function updateAuthUI(user) {
     } else {
         currentUserId = null;
         currentUserEmail = '';
+        despesasLegadasVerificadas = false;
         DOMElements.mainContent.classList.add('bloqueado');
 
         const loginButton = document.createElement('button');
@@ -327,7 +337,7 @@ function recusarFechamentoMensal() {
     currentMonth = mes;
     atualizarLabelMes();
     preencherDataAtual(mes);
-    carregarDespesasFirestore();
+    carregarDespesasFirestore().then(atualizarAnaliseSeCarregou);
     showToast(`Você voltou para ${getMonthName(mes)} para completar os cadastros.`, 'info');
 }
 
@@ -355,6 +365,7 @@ function atualizarListaPessoas() {
     }
 
     const totalSalarios = pessoas.reduce((acc, pessoa) => acc + Number(pessoa.salario || 0), 0);
+    const fragment = document.createDocumentFragment();
 
     pessoas.forEach(pessoa => {
         const participacao = totalSalarios > 0 ? (Number(pessoa.salario || 0) / totalSalarios) * 100 : 0;
@@ -371,8 +382,10 @@ function atualizarListaPessoas() {
                 <button class="btn-acao excluir" data-id="${pessoa.id}">Excluir</button>
             </div>
         `;
-        DOMElements.listaPessoasContainer.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    DOMElements.listaPessoasContainer.appendChild(fragment);
 }
 
 async function handlePessoaFormSubmit(event) {
@@ -442,28 +455,24 @@ function handlePessoaActions(event) {
 
 // --- DESPESAS ---
 async function carregarDespesasFirestore() {
+    const loadToken = ++despesasLoadToken;
+
     try {
-        const todas = await buscarTodasDespesas();
-        const despesasDoMes = [];
+        const despesasCarregadas = await buscarDespesasPorMes(currentMonth);
+        if (loadToken !== despesasLoadToken) return false;
 
-        for (const despesa of todas) {
-            const mesDaDespesa = despesa.mesReferencia || getMonthFromDateString(despesa.data);
-
-            if (!despesa.mesReferencia && mesDaDespesa) {
-                updateDoc(doc(db, 'users', currentUserId, 'despesas', despesa.id), { mesReferencia: mesDaDespesa }).catch(() => {});
-            }
-
-            if (mesDaDespesa === currentMonth) {
-                despesasDoMes.push({ ...despesa, mesReferencia: mesDaDespesa });
-            }
-        }
-
-        despesas = despesasDoMes;
+        despesas = despesasCarregadas;
         atualizarTabela();
+        return true;
     } catch (error) {
+        if (loadToken !== despesasLoadToken) return false;
         console.error('Erro ao carregar despesas:', error);
         showToast('Não foi possível carregar as despesas.', 'error');
     }
+}
+
+function atualizarAnaliseSeCarregou(atualizou) {
+    if (atualizou) atualizarAnaliseOrcamento();
 }
 
 async function buscarTodasDespesas() {
@@ -472,8 +481,32 @@ async function buscarTodasDespesas() {
 }
 
 async function buscarDespesasPorMes(monthKey) {
+    const despesasRef = collection(db, 'users', currentUserId, 'despesas');
+    const querySnapshot = await getDocs(query(despesasRef, where('mesReferencia', '==', monthKey)));
+    const despesasDoMes = querySnapshot.docs.map(documento => ({ id: documento.id, ...documento.data() }));
+
+    if (despesasLegadasVerificadas) {
+        return despesasDoMes;
+    }
+
+    // Compatibilidade com registros antigos, criados antes do campo mesReferencia.
     const todas = await buscarTodasDespesas();
-    return todas.filter(despesa => (despesa.mesReferencia || getMonthFromDateString(despesa.data)) === monthKey);
+    const despesasPorId = new Map(despesasDoMes.map(despesa => [despesa.id, despesa]));
+
+    for (const despesa of todas) {
+        const mesDaDespesa = despesa.mesReferencia || getMonthFromDateString(despesa.data);
+
+        if (!despesa.mesReferencia && mesDaDespesa) {
+            updateDoc(doc(db, 'users', currentUserId, 'despesas', despesa.id), { mesReferencia: mesDaDespesa }).catch(() => {});
+        }
+
+        if (mesDaDespesa === monthKey) {
+            despesasPorId.set(despesa.id, { ...despesa, mesReferencia: mesDaDespesa });
+        }
+    }
+
+    despesasLegadasVerificadas = true;
+    return [...despesasPorId.values()];
 }
 
 function atualizarTabela() {
@@ -498,6 +531,7 @@ function atualizarTabela() {
         if (valA > valB) return ordem === 'asc' ? 1 : -1;
         return 0;
     });
+    const fragment = document.createDocumentFragment();
 
     despesasOrdenadas.forEach(despesa => {
         const tr = document.createElement('tr');
@@ -512,9 +546,10 @@ function atualizarTabela() {
                 <button class="btn-acao excluir" data-id="${despesa.id}">Excluir</button>
             </td>
         `;
-        DOMElements.tabelaDespesasBody.appendChild(tr);
+        fragment.appendChild(tr);
     });
 
+    DOMElements.tabelaDespesasBody.appendChild(fragment);
     atualizarIndicadoresOrdenacao();
 }
 
@@ -652,7 +687,6 @@ function atualizarAnaliseOrcamento() {
     }
 
     atualizarResumoPorPessoa(totalDespesas, totalSalarios);
-    atualizarListaPessoas();
 }
 
 function atualizarResumoPorPessoa(totalDespesas, totalSalarios) {
@@ -662,6 +696,8 @@ function atualizarResumoPorPessoa(totalDespesas, totalSalarios) {
         DOMElements.resumoPorPessoaContainer.innerHTML = '<p class="empty-state">O rateio aparece aqui após o cadastro das rendas.</p>';
         return;
     }
+
+    const fragment = document.createDocumentFragment();
 
     pessoas.forEach(pessoa => {
         const salario = Number(pessoa.salario || 0);
@@ -683,8 +719,10 @@ function atualizarResumoPorPessoa(totalDespesas, totalSalarios) {
                 <p><span>Saldo estimado</span> <strong>${formatCurrency(saldo)}</strong></p>
             </div>
         `;
-        DOMElements.resumoPorPessoaContainer.appendChild(resumoDiv);
+        fragment.appendChild(resumoDiv);
     });
+
+    DOMElements.resumoPorPessoaContainer.appendChild(fragment);
 }
 
 async function carregarDadosFirestore() {
@@ -705,7 +743,7 @@ function montarResumoTexto(monthKey, despesasBase = despesas) {
         return `${pessoa.nome}: renda ${formatCurrency(salario)} | participação ${formatPercent(proporcao * 100)} | parte das despesas ${formatCurrency(totalDespesas * proporcao)} | saldo estimado ${formatCurrency(salario - (totalDespesas * proporcao))}`;
     });
 
-    const linhasDespesas = despesasBase
+    const linhasDespesas = [...despesasBase]
         .sort((a, b) => String(a.data).localeCompare(String(b.data)))
         .map(despesa => `- ${formatDate(despesa.data)} | ${despesa.categoria || despesa.tipo || 'Sem categoria'} | ${despesa.descricao || '-'} | ${formatCurrency(Number(despesa.valor || 0))}`);
 
@@ -853,14 +891,14 @@ function mudarMes(amount) {
     currentMonth = shiftMonth(currentMonth, amount);
     atualizarLabelMes();
     preencherDataAtual(currentMonth);
-    carregarDespesasFirestore().then(atualizarAnaliseOrcamento);
+    carregarDespesasFirestore().then(atualizarAnaliseSeCarregou);
 }
 
 function voltarMesAtual() {
     currentMonth = getMonthKey(new Date());
     atualizarLabelMes();
     preencherDataAtual(currentMonth);
-    carregarDespesasFirestore().then(atualizarAnaliseOrcamento);
+    carregarDespesasFirestore().then(atualizarAnaliseSeCarregou);
 }
 
 // --- INICIALIZAÇÃO E EVENT LISTENERS ---
